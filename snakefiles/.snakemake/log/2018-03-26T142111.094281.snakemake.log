@@ -1,0 +1,25 @@
+Building DAG of jobs...
+MissingInputException in line 8 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/check-base-file-integrity.snake:
+Missing input files for rule all:
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/11-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/8-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/4-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/17-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/16-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/13-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/6-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/12-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/18-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/14-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/7-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/21-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/1-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/19-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/5-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/20-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/2-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/15-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/9-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/22-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/10-integrity.txt
+/mnt/archive/HARVEST/genotypes-base/integrity/m24/3-integrity.txt

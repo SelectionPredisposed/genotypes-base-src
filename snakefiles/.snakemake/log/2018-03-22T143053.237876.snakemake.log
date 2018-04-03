@@ -1,0 +1,256 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 23
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	22	merge_imputed
+	22
+
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/1.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/1.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/1-merged.vcf.gz
+    jobid: 0
+    wildcards: chr=1
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/1-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/1.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/1.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/19.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/19.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/19-merged.vcf.gz
+    jobid: 1
+    wildcards: chr=19
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/19-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/19.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/19.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/11.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/11.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/11-merged.vcf.gz
+    jobid: 2
+    wildcards: chr=11
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/11-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/11.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/11.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/9.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/9.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/9-merged.vcf.gz
+    jobid: 3
+    wildcards: chr=9
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/9-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/9.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/9.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/22.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/22.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/22-merged.vcf.gz
+    jobid: 4
+    wildcards: chr=22
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/22-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/22.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/22.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/3.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/3.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/3-merged.vcf.gz
+    jobid: 5
+    wildcards: chr=3
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/3-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/3.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/3.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/20.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/20.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/20-merged.vcf.gz
+    jobid: 6
+    wildcards: chr=20
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/20-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/20.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/20.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/17.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/17.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/17-merged.vcf.gz
+    jobid: 7
+    wildcards: chr=17
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/17-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/17.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/17.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/2.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/2.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/2-merged.vcf.gz
+    jobid: 8
+    wildcards: chr=2
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/2-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/2.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/2.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/7.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/7.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/7-merged.vcf.gz
+    jobid: 9
+    wildcards: chr=7
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/7-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/7.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/7.vcf.gz
+        
+
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/16.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/16.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/16-merged.vcf.gz
+    jobid: 10
+    wildcards: chr=16
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/16-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/16.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/16.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/6.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/6.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/6-merged.vcf.gz
+    jobid: 11
+    wildcards: chr=6
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/6-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/6.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/6.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/12.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/12.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/12-merged.vcf.gz
+    jobid: 12
+    wildcards: chr=12
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/12-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/12.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/12.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/14.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/14.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/14-merged.vcf.gz
+    jobid: 13
+    wildcards: chr=14
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/14-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/14.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/14.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/18.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/18.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/18-merged.vcf.gz
+    jobid: 14
+    wildcards: chr=18
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/18-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/18.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/18.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/13.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/13.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/13-merged.vcf.gz
+    jobid: 15
+    wildcards: chr=13
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/13-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/13.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/13.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/10.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/10.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/10-merged.vcf.gz
+    jobid: 16
+    wildcards: chr=10
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/10-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/10.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/10.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/4.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/4.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/4-merged.vcf.gz
+    jobid: 17
+    wildcards: chr=4
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/4-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/4.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/4.vcf.gz
+        
+
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/5.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/5.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/5-merged.vcf.gz
+    jobid: 18
+    wildcards: chr=5
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/5-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/5.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/5.vcf.gz
+        
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/8.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/8.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/8-merged.vcf.gz
+    jobid: 19
+    wildcards: chr=8
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/8-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/8.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/8.vcf.gz
+        
+
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/15.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/15.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/15-merged.vcf.gz
+    jobid: 20
+    wildcards: chr=15
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/15-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/15.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/15.vcf.gz
+        
+
+rule merge_imputed:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/21.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/21.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/21-merged.vcf.gz
+    jobid: 21
+    wildcards: chr=21
+
+
+        /mnt/archive/HARVEST/genotypes-base-src/software/bcftools-1.7/bcftools merge --info-rules INFO:avg -o /mnt/archive/HARVEST/genotypes-base/imputed/merged/21-merged.vcf.gz -Oz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/21.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m24/21.vcf.gz
+        
+Finished job 4.
+1 of 22 steps (5%) done
+Finished job 21.
+2 of 22 steps (9%) done
+Finished job 1.
+3 of 22 steps (14%) done
+Finished job 6.
+4 of 22 steps (18%) done
+Finished job 7.
+5 of 22 steps (23%) done
+Finished job 14.
+6 of 22 steps (27%) done
+Finished job 20.
+7 of 22 steps (32%) done
+Finished job 13.
+8 of 22 steps (36%) done
+Finished job 10.
+9 of 22 steps (41%) done
+Finished job 15.
+10 of 22 steps (45%) done
+Finished job 3.
+11 of 22 steps (50%) done
+Finished job 12.
+12 of 22 steps (55%) done
+Finished job 2.
+13 of 22 steps (59%) done
+Finished job 16.
+14 of 22 steps (64%) done
+Finished job 19.
+15 of 22 steps (68%) done
+Finished job 9.
+16 of 22 steps (73%) done
+Finished job 11.
+17 of 22 steps (77%) done
+Finished job 18.
+18 of 22 steps (82%) done
+Finished job 17.
+19 of 22 steps (86%) done
+Finished job 5.
+20 of 22 steps (91%) done
+Finished job 0.
+21 of 22 steps (95%) done
+Finished job 8.
+22 of 22 steps (100%) done
+Complete log: /mnt/archive/HARVEST/genotypes-base-src/snakefiles/.snakemake/log/2018-03-22T143053.237876.snakemake.log

@@ -1,0 +1,25 @@
+Building DAG of jobs...
+MissingInputException in line 12 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/check-base-file-integrity.snake:
+Missing input files for rule check_file_integrity:
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/17.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/4.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/3.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/12.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/16.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/20.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/1.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/21.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/6.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/10.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/19.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/15.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/9.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/11.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/5.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/8.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/14.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/18.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/7.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/2.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/13.vzf.gz
+/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/22.vzf.gz

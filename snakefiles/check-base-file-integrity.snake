@@ -1,0 +1,33 @@
+# Config files containing hard coded variables
+configfile: "config.json"
+
+# Runtime variables
+include: "variables.py"
+
+### Catch all rule
+rule all:
+    input:
+        expand(config['output_base'] + 'integrity/{batch}/{chr}-integrity.txt', batch=['m12','m24'], chr=chrom)
+
+# Rule to make sure gz file integrity for m12 is okay 
+rule check_file_integrity_m12:
+    input:
+        m12=config['imputed_m12_path'] + '{chr}.vcf.gz'
+    output:
+        config['output_base'] + 'integrity/m12/{chr}-integrity.txt'
+    shell:
+        """
+        gzip -t {input.m12}  && echo ok || echo bad > {output}
+        """
+
+# Rule to make sure gz file integrity for m24 is okay 
+rule check_file_integrity_m24:
+    input:
+        m24=config['imputed_m24_path'] + '{chr}.vcf.gz'
+    output:
+        config['output_base'] + 'integrity/m24/{chr}-integrity.txt'
+    shell:
+        """
+        gzip -t {input.m24}  && echo '{wildcards.chr}: ok' || echo '{wildcards.chr}: bad' > {output}                                                                                                                                               
+        """
+

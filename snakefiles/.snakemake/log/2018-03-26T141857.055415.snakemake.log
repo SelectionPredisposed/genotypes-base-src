@@ -1,0 +1,29 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	22	check_file_integrity_m12
+	22	check_file_integrity_m24
+	45
+
+rule check_file_integrity_m12:
+    input: /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/1.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/2.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/3.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/4.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/5.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/6.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/7.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/8.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/9.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/10.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/11.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/12.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/13.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/14.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/15.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/16.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/17.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/18.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/19.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/20.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/21.vcf.gz, /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/22.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/integrity/m12/10-integrity.txt
+    jobid: 1
+    wildcards: chr=10
+
+Terminating processes on user request, this might take some time.
+Error in rule check_file_integrity_m12:
+    jobid: 1
+    output: /mnt/archive/HARVEST/genotypes-base/integrity/m12/10-integrity.txt
+
+RuleException:
+CalledProcessError in line 18 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/check-base-file-integrity.snake:
+Command ' set -euo pipefail;  
+        gzip -t /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/1.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/2.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/3.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/4.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/5.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/6.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/7.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/8.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/9.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/10.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/11.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/12.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/13.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/14.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/15.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/16.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/17.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/18.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/19.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/20.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/21.vcf.gz /mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/22.vcf.gz  && echo ok || echo bad > /mnt/archive/HARVEST/genotypes-base/integrity/m12/10-integrity.txt ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/check-base-file-integrity.snake", line 18, in __rule_check_file_integrity_m12
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+Complete log: /mnt/archive/HARVEST/genotypes-base-src/snakefiles/.snakemake/log/2018-03-26T141857.055415.snakemake.log

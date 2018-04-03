@@ -1,0 +1,480 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 40
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	22	extract_common
+	22	generate_unique_rsids
+	45
+
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/11-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/11-merged-unique-rsids.vcf.gz
+    jobid: 27
+    wildcards: chr=11
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/11-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/11-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/17-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/17-merged-unique-rsids.vcf.gz
+    jobid: 6
+    wildcards: chr=17
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/17-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/17-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/20-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/20-merged-unique-rsids.vcf.gz
+    jobid: 8
+    wildcards: chr=20
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/20-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/20-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/21-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/21-merged-unique-rsids.vcf.gz
+    jobid: 10
+    wildcards: chr=21
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/21-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/21-merged-unique-rsids.vcf.gz
+        
+
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/7-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/7-merged-unique-rsids.vcf.gz
+    jobid: 12
+    wildcards: chr=7
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/7-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/7-merged-unique-rsids.vcf.gz
+        
+
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/9-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/9-merged-unique-rsids.vcf.gz
+    jobid: 25
+    wildcards: chr=9
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/9-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/9-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/10-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/10-merged-unique-rsids.vcf.gz
+    jobid: 13
+    wildcards: chr=10
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/10-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/10-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/18-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/18-merged-unique-rsids.vcf.gz
+    jobid: 15
+    wildcards: chr=18
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/18-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/18-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/5-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/5-merged-unique-rsids.vcf.gz
+    jobid: 18
+    wildcards: chr=5
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/5-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/5-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/22-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/22-merged-unique-rsids.vcf.gz
+    jobid: 16
+    wildcards: chr=22
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/22-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/22-merged-unique-rsids.vcf.gz
+        
+
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/8-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/8-merged-unique-rsids.vcf.gz
+    jobid: 20
+    wildcards: chr=8
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/8-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/8-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/6-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/6-merged-unique-rsids.vcf.gz
+    jobid: 29
+    wildcards: chr=6
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/6-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/6-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/1-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/1-merged-unique-rsids.vcf.gz
+    jobid: 34
+    wildcards: chr=1
+
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/14-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/14-merged-unique-rsids.vcf.gz
+    jobid: 35
+    wildcards: chr=14
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/1-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/1-merged-unique-rsids.vcf.gz
+        
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/14-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/14-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/15-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/15-merged-unique-rsids.vcf.gz
+    jobid: 62
+    wildcards: chr=15
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/15-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/15-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/12-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/12-merged-unique-rsids.vcf.gz
+    jobid: 38
+    wildcards: chr=12
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/12-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/12-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/13-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/13-merged-unique-rsids.vcf.gz
+    jobid: 45
+    wildcards: chr=13
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/13-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/13-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/4-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/4-merged-unique-rsids.vcf.gz
+    jobid: 7
+    wildcards: chr=4
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/4-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/4-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/19-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/19-merged-unique-rsids.vcf.gz
+    jobid: 22
+    wildcards: chr=19
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/19-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/19-merged-unique-rsids.vcf.gz
+        
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/16-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/16-merged-unique-rsids.vcf.gz
+    jobid: 51
+    wildcards: chr=16
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/16-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/16-merged-unique-rsids.vcf.gz
+        
+
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/3-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/3-merged-unique-rsids.vcf.gz
+    jobid: 41
+    wildcards: chr=3
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/3-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/3-merged-unique-rsids.vcf.gz
+        
+
+rule generate_unique_rsids:
+    input: /mnt/archive/HARVEST/genotypes-base/imputed/merged/2-merged.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/2-merged-unique-rsids.vcf.gz
+    jobid: 64
+    wildcards: chr=2
+
+
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/2-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/2-merged-unique-rsids.vcf.gz
+        
+Error in rule generate_unique_rsids:
+    jobid: 7
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/4-merged-unique-rsids.vcf.gz
+
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/4-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/4-merged-unique-rsids.vcf.gz ' returned non-zero exit status 1
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/4-merged-unique-rsids.vcf.gz
+Terminating processes on user request, this might take some time.
+Error in rule generate_unique_rsids:
+    jobid: 35
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/14-merged-unique-rsids.vcf.gz
+
+Error in rule generate_unique_rsids:
+Error in rule generate_unique_rsids:
+    jobid: 6
+Error in rule generate_unique_rsids:
+Error in rule generate_unique_rsids:
+Error in rule generate_unique_rsids:
+Error in rule generate_unique_rsids:
+Error in rule generate_unique_rsids:
+    jobid: 10
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/21-merged-unique-rsids.vcf.gz
+
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/21-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/21-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+Error in rule generate_unique_rsids:
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/17-merged-unique-rsids.vcf.gz
+Error in rule generate_unique_rsids:
+Error in rule generate_unique_rsids:
+Error in rule generate_unique_rsids:
+Error in rule generate_unique_rsids:
+    jobid: 18
+Error in rule generate_unique_rsids:
+Error in rule generate_unique_rsids:
+Error in rule generate_unique_rsids:
+Error in rule generate_unique_rsids:
+    jobid: 29
+Error in rule generate_unique_rsids:
+Error in rule generate_unique_rsids:
+    jobid: 51
+    jobid: 62
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/21-merged-unique-rsids.vcf.gz
+Error in rule generate_unique_rsids:
+    jobid: 27
+Error in rule generate_unique_rsids:
+    jobid: 16
+    jobid: 8
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/5-merged-unique-rsids.vcf.gz
+    jobid: 34
+    jobid: 25
+    jobid: 15
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/22-merged-unique-rsids.vcf.gz
+    jobid: 45
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/14-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/14-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+    jobid: 64
+    jobid: 13
+    jobid: 20
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/6-merged-unique-rsids.vcf.gz
+    jobid: 38
+    jobid: 41
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/16-merged-unique-rsids.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/15-merged-unique-rsids.vcf.gz
+
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/11-merged-unique-rsids.vcf.gz
+    jobid: 22
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/8-merged-unique-rsids.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/12-merged-unique-rsids.vcf.gz
+
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/1-merged-unique-rsids.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/9-merged-unique-rsids.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/18-merged-unique-rsids.vcf.gz
+
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/13-merged-unique-rsids.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/2-merged-unique-rsids.vcf.gz
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/10-merged-unique-rsids.vcf.gz
+
+    jobid: 12
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/20-merged-unique-rsids.vcf.gz
+
+
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/3-merged-unique-rsids.vcf.gz
+
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/19-merged-unique-rsids.vcf.gz
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/17-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/17-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+
+
+
+
+
+
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/5-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/5-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/22-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/22-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+
+    output: /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/7-merged-unique-rsids.vcf.gz
+
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/15-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/15-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/6-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/6-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+
+
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/16-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/16-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/1-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/1-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/18-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/18-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/9-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/9-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/12-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/12-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/8-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/8-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/11-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/11-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/2-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/2-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/13-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/13-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/10-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/10-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/20-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/20-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/7-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/7-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/19-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/19-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+RuleException:
+CalledProcessError in line 35 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
+Command ' set -euo pipefail;  
+        zcat /mnt/archive/HARVEST/genotypes-base/imputed/merged/3-merged.vcf.gz | awk -v OFS='	' '$0~/^#/{print; next} {snp[$3]++} $3=="."{$3=$1":"$2"_"$4"/"$5} snp[$3]>1 {$3=$3"_"snp[$3]} {print}' | gzip > /mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/3-merged-unique-rsids.vcf.gz ' returned non-zero exit status -2
+  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 35, in __rule_generate_unique_rsids
+  File "/usr/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/14-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/17-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/5-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/22-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/15-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/6-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/16-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/1-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/18-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/9-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/12-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/8-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/11-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/2-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/13-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/10-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/20-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/7-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/19-merged-unique-rsids.vcf.gz
+Removing output files of failed job generate_unique_rsids since they might be corrupted:
+/mnt/archive/HARVEST/genotypes-base/imputed/merged/unique_rsids/3-merged-unique-rsids.vcf.gz
+Complete log: /mnt/archive/HARVEST/genotypes-base-src/snakefiles/.snakemake/log/2018-03-23T163558.487302.snakemake.log

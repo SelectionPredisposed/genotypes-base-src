@@ -1,0 +1,6 @@
+
+        # Remove the '.bed' extension to give PLINK the stem
+        name=$(echo /media/local-disk2/helgeland/scratch/testcoreout//genotyped/merged/moba-qc-merge.bed | sed -e 's/\(.bed\)*$//g')
+
+        plink             --bed /media/local-disk2/helgeland/delivery-fhi/data/genotyped/m12-genotyped.bed             --bim /media/local-disk2/helgeland/delivery-fhi/data/genotyped/m12-genotyped.bim             --fam /media/local-disk2/helgeland/delivery-fhi/data/genotyped/m12-genotyped.fam             --bmerge /media/local-disk2/helgeland/delivery-fhi/data/genotyped/m24-genotyped.bed /media/local-disk2/helgeland/delivery-fhi/data/genotyped/m24-genotyped.bim /media/local-disk2/helgeland/delivery-fhi/data/genotyped/m24-genotyped.fam             --merge-mode 4             --make-bed             --out $name
+        

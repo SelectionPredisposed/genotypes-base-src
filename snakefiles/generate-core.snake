@@ -1,0 +1,160 @@
+# Config files containing hard coded variables
+configfile: "config.json"
+
+# Runtime variables
+include: "variables.py"
+
+# Catch all rule
+rule all:
+    input:
+        config['output_base'] + 'genotyped/merged/moba-qc-merge.bed',
+        expand(config['output_base'] + 'core/core_{role}_pihat_above_0_1_all_extended', role=['PARENT','OFFSPRING']),
+        expand(config['output_base'] + 'core/core_{role}_pihat_above_0_1_all', role=['PARENT','OFFSPRING']),
+        expand(config['output_base'] + 'core/core_{role}', role=['PARENT','OFFSPRING']),
+        expand(config['output_base'] + 'core/pca/pca-{role}.pca.evec', role=['PARENT','OFFSPRING'])
+
+# Merges the genotyped datasets (the datasets sent for imputation) to use for downstream
+# IBD checking in this workflow.
+rule merge_to_imputation:
+    input:
+        m12bed=config['to_imputation_m12_stem'] + '.bed',
+        m12bim=config['to_imputation_m12_stem'] + '.bim',
+        m12fam=config['to_imputation_m12_stem'] + '.fam',
+        m24bed=config['to_imputation_m24_stem'] + '.bed',
+        m24bim=config['to_imputation_m24_stem'] + '.bim',
+        m24fam=config['to_imputation_m24_stem'] + '.fam'
+    output:
+        merged_bed=config['output_base'] + 'genotyped/merged/moba-qc-merge.bed',
+        merged_fam=config['output_base'] + 'genotyped/merged/moba-qc-merge.fam'
+    params:
+        outstem=config['output_base'] + 'genotyped/merged/moba-qc-merge'
+    shell:
+        """
+        # Remove the '.bed' extension to give PLINK the stem
+        # name=$(echo {output.merged_bed} | sed -e 's/\(.bed\)*$//g')
+
+        plinklocal \
+            --bed {input.m12bed} \
+            --bim {input.m12bim} \
+            --fam {input.m12fam} \
+            --bmerge {input.m24bed} {input.m24bim} {input.m24fam} \
+            --merge-mode 4 \
+            --make-bed \
+            --out {params.outstem}
+        
+        mv {output.merged_fam} {output.merged_fam}.bak
+        awk '{{print $2,$2,0,0,0,-9}}' {output.merged_fam}.bak > {output.merged_fam}
+        """
+
+
+# Identifies the core samples for parents and offspring separately. The rule
+# implements an IBD-filter to remove samples with excess IBD after merging m12
+# and m24
+rule identify_core:
+    input:
+        mobamerged=config['output_base'] + 'genotyped/merged/moba-qc-merge.bed',
+        flaglist=config['flaglist']
+    output:
+        pihat_full_exclusion=config['output_base'] + 'core/core_{role}_pihat_above_0_1_all_extended',
+        pihat_list_exclusion=config['output_base'] + 'core/core_{role}_pihat_above_0_1_all',
+        core_samples=config['output_base'] + 'core/core_{role}'
+    params:
+        tmp=config['tmp_folder']
+    shell:
+        """
+        mkdir -p {params.tmp}
+        # OFFSPRING
+        # Extract core offspring with genotypesOK=T, phenotypesOK=T and coreOK=T
+        awk -v role="{wildcards.role}" '$3==role && $20=="TRUE" && $21=="TRUE" && $22=="TRUE" {{print $1,$1}}' {input.flaglist} > {params.tmp}/flaglist_all_core_{wildcards.role}
+        
+        # Remove suffix
+        name=$(echo {input.mobamerged} | sed -e 's/\(.bed\)*$//g')
+
+        # Prune markers before running genome
+        plink \
+            --bfile $name \
+            --keep {params.tmp}/flaglist_all_core_{wildcards.role} \
+            --indep-pairwise 50 5 0.5 \
+            --chr 1-22 \
+            --maf 0.01 \
+            --geno 0.02 \
+            --out {params.tmp}/core-{wildcards.role}-indep
+
+        # Extract independent markers
+        plink \
+            --bfile $name \
+            --keep {params.tmp}/flaglist_all_core_{wildcards.role} \
+            --extract {params.tmp}/core-{wildcards.role}-indep.prune.in \
+            --make-bed \
+            --out {params.tmp}/core-{wildcards.role}-autosomal-pruned
+
+        # running genome on pruned autosomal data
+        plink \
+            --bfile {params.tmp}/core-{wildcards.role}-autosomal-pruned \
+            --genome \
+            --out {params.tmp}/core-{wildcards.role}-genome
+
+        # Extract only rows with pihat > 0.1
+        tail -n+2 {params.tmp}/core-{wildcards.role}-genome.genome | awk '$10 > 0.1' > {output.pihat_full_exclusion}
+
+        # Get one side in the pair of samples with pihat above threshold of 0.1
+        tail -n+2 {params.tmp}/core-{wildcards.role}-genome.genome | awk '$10 > 0.1 {{print $3,$4}}' | sort | uniq > {output.pihat_list_exclusion}
+
+        # Core samples
+        awk 'NR==FNR {{ ex[$0]; next}} !($0 in ex) {{print $0}}' {output.pihat_list_exclusion} {params.tmp}/flaglist_all_core_{wildcards.role} > {output.core_samples}
+
+        """
+
+# Calculates 10 principal components for parents and offspring separately
+rule generate_pca_covariates:
+    input:
+        corelist=config['output_base'] + '/core/core_{role}',
+    output:
+        pcacovar=config['output_base'] + '/core/pca/pca-{role}.pca.evec'
+    params:
+        tmp_path=config['tmp_folder'],
+        lib_path=config['lib_path'],
+        moba_stem=config['output_base'] + '/genotyped/merged/moba-qc-merge'
+    shell:
+        """
+        # Generate tmp folder
+        tmp={params.tmp_path}/core/pca/{wildcards.role}
+        mkdir -p $tmp
+
+        # Prune genotyped dataset - get list of markers to prune
+        plink \
+            --bfile {params.moba_stem} \
+            --keep {input.corelist} \
+            --maf 0.05 \
+            --autosome \
+            --indep-pairwise 200 100 0.2 \
+            --out {params.tmp_path}/core/pca/pruned
+
+
+        # Create a pruned dataset for PCA analysis
+        plink \
+            --bfile {params.moba_stem} \
+            --keep {input.corelist} \
+            --autosome \
+            --extract {params.tmp_path}/core/pca/pruned.prune.in \
+            --make-bed \
+            --out {params.tmp_path}/core/pca/moba-all-pruned
+
+        # Source to get the PCA functions from the QC-pipeline
+        set +u; source {params.lib_path}/pca_functions.sh
+        
+        # Remove prefix
+        name=$(echo {output.pcacovar} | sed -e 's/\(.pca.evec\)*$//g')
+
+        # Run PCA analysis
+        # 1. Bedset to use for PCA analysis
+        # 2. Output prefix and path for PCA output
+        # 3. Number of PCAs to calculate
+        # 4. Plot in function
+        # 5. tmp folder
+        pca {params.tmp_path}/core/pca/moba-all-pruned $name 10 "NO" $tmp
+
+        tail -n+2 {output.pcacovar} | tr ':' ' ' | tr -s ' ' ' ' | cut -f2-12 -d' ' > {output.pcacovar}.formatted
+
+        """
+

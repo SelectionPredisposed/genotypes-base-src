@@ -1,0 +1,29 @@
+configfile: "config.json"
+chrom = list(range(1,23))
+
+rule all:
+    input:
+        expand(config['output_base'] + '/imputed/markerinfo/{chr}-markerinfo-unique-rsid', chr=chrom)
+
+# Extracts markerinformation from VCF files. This is performed after conversion to unique rsid
+rule extract_info_score:
+    input:
+        vcf=config['output_base'] + '/imputed/merged/unique_rsids/{chr}-merged-unique-rsids.vcf.gz'
+    output:
+        markerinfo=config['output_base'] + '/imputed/markerinfo/{chr}-markerinfo-unique-rsid'
+    shell:
+        """
+        bcftools query -H -f '%CHROM\t%POS\t%ID\t%REF\t%ALT\t%INFO/TYPED\t%INFO/INFO\t%INFO/RefPanelAF\n' {input.vcf} > {output.markerinfo}
+        """
+
+# Extracts order of samples in the VCF file
+# The sample order is the same for alle file, but check all to be sure
+rule extract_sample_order:
+    input:
+    output:
+    shell:
+        """
+        bcftools query -l $MOBAMERGED > $OUTPATH/moba-merged-vcf-sample-order
+        """
+
+

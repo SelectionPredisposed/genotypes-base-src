@@ -1,0 +1,50 @@
+# Config files containing hard coded variables
+configfile: "config.json"
+
+# Runtime variables
+include: "variables.py"
+
+# Catch all rule
+rule all:
+    input:
+        expand(config['output_base'] + 'imputed/merged/{chr}-merged.vcf.gz', chr=chrom),
+        expand(config['output_base'] + 'imputed/merged/unique_rsids/{chr}-merged-unique-rsids.vcf.gz', chr=chrom),
+        expand(config['output_base'] + 'imputed/merged/unique_rsids/common/{chr}-merged-unique-rsids-common.vcf.gz', chr=chrom)
+
+# Merge imputed autosomal chromosomes
+rule merge_imputed:
+    input:
+        imp12=config['imputed_m12_path'] + "{chr}.vcf.gz",
+        imp24=config['imputed_m24_path'] + "{chr}.vcf.gz"
+    output:
+        outfile=config['output_base'] + 'imputed/merged/{chr}-merged.vcf.gz'
+    params:
+        bcftools=bcftools
+    shell:
+        """
+        {params.bcftools} merge --info-rules INFO:avg -o {output} -Oz {input.imp12} {input.imp24}
+        """
+
+# Convert rsids with dot-notation (unnamed) to format: <CHR>:<POSITION>_<REF>/<ALT>    
+rule generate_unique_rsids:
+    input:
+        config['output_base'] + 'imputed/merged/{chr}-merged.vcf.gz'
+    output:
+        config['output_base'] + 'imputed/merged/unique_rsids/{chr}-merged-unique-rsids.vcf.gz'
+    shell:
+        """
+        zcat {input} | awk -v OFS='\t' '$0~/^#/{{print; next}} {{snp[$3]++}} $3=="."{{$3=$1":"$2"_"$4"/"$5}} snp[$3]>1 {{$3=$3"_"snp[$3]}} {{print}}' | gzip > {output}
+        """
+
+# Extract common markers
+rule extract_common:
+    input:
+        config['output_base'] + 'imputed/merged/unique_rsids/{chr}-merged-unique-rsids.vcf.gz'
+    output:
+        config['output_base'] + 'imputed/merged/unique_rsids/common/{chr}-merged-unique-rsids-common.vcf.gz'
+    params:
+        vcftools=vcftools
+    shell:
+        """
+        {params.vcftools} --gzvcf {input} --maf 0.001 --recode-INFO-all --recode --stdout | gzip -c > {output}
+        """
