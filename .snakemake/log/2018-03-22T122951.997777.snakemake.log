@@ -1,3 +1,0 @@
-WorkflowError in line 1 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake:
-Config file config.json not found.
-  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/generate-base.snake", line 1, in <module>
