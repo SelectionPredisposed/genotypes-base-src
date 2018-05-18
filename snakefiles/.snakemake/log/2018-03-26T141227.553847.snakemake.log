@@ -1,3 +1,0 @@
-KeyError in line 14 of /mnt/archive/HARVEST/genotypes-base-src/snakefiles/check-base-file-integrity.snake:
-'imputed_{batch}_path'
-  File "/mnt/archive/HARVEST/genotypes-base-src/snakefiles/check-base-file-integrity.snake", line 14, in <module>
