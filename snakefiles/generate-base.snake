@@ -7,9 +7,11 @@ include: "variables.py"
 # Catch all rule
 rule all:
     input:
-        expand(config['output_base'] + 'imputed/merged/{chr}-merged.vcf.gz', chr=chrom),
-        expand(config['output_base'] + 'imputed/merged/unique_rsids/{chr}-merged-unique-rsids.vcf.gz', chr=chrom),
-        expand(config['output_base'] + 'imputed/merged/unique_rsids/common/{chr}-merged-unique-rsids-common.vcf.gz', chr=chrom)
+        expand(config['output_base'] + 'imputed/merged/unique_rsids/common/{chr}-merged-unique-rsids-dbsnp-common.vcf.gz', chr=chrom),
+        expand(config['tmp_path'] + 'dot-markers/chr{chr}-dbsnp-conversion-table', chr=chromx) 
+#        expand(config['output_base'] + 'imputed/merged/{chr}-merged.vcf.gz', chr=chrom),
+#        expand(config['output_base'] + 'imputed/merged/unique_rsids/{chr}-merged-unique-rsids.vcf.gz', chr=chrom),
+#        expand(config['output_base'] + 'imputed/merged/unique_rsids/common/{chr}-merged-unique-rsids-common.vcf.gz', chr=chrom)
 
 # Merge imputed autosomal chromosomes
 rule merge_imputed:
@@ -17,31 +19,99 @@ rule merge_imputed:
         imp12=config['imputed_m12_path'] + "{chr}.vcf.gz",
         imp24=config['imputed_m24_path'] + "{chr}.vcf.gz"
     output:
-        outfile=config['output_base'] + 'imputed/merged/{chr}-merged.vcf.gz'
+        outfile=config['output_base'] + 'imputed/merged/{chr}-merged.vcf.gz',
+		tbi=config['output_base'] + 'imputed/merged/{chr}-merged.vcf.gz.tbi'
     params:
         bcftools=bcftools
     shell:
         """
-        {params.bcftools} merge --info-rules INFO:avg -o {output} -Oz {input.imp12} {input.imp24}
+        {params.bcftools} merge --info-rules INFO:avg -o {output.outfile} -Oz {input.imp12} {input.imp24}
+		tabix {output}
         """
 
-# Convert rsids with dot-notation (unnamed) to format: <CHR>:<POSITION>_<REF>/<ALT>    
-rule generate_unique_rsids:
+# extract lists of all markers with dot-notation in original vcfs
+rule get_dot_notation_list:
+	input:
+		vcf=config['output_base'] + 'imputed/merged/{chr}-merged.vcf.gz'
+	output:
+		dot_list=config['tmp_path'] + 'dot-markers/chr{chr}-dot-markers'
+	shell:
+		"""
+		zcat {input.vcf} | awk '$0~/^#/{{next}} $3=="." {{print "chr"$1":"$2"_"$4"/"$5}}' > {output.dot_list}
+		"""
+
+# split the dbsnp file containing all chr into one file per chr to parallel subsequent operations
+rule split_dbsnp:
+    input:
+       	dbsnp=config['dbsnp'] 
+    output:
+        config['tmp_path'] + 'dot-markers/chr{chr}-dbsnp' 
+    shell:
+        """
+        grep chr{wildcards.chr} <(zcat {input}) > {output}
+        """
+
+# generate a conversion table between epacts format and rsID from dbSNP release. Each marker has two lines
+# where marker alleles are REF/ALT and ALT/REF, respectively. This is necessary to make sure PLINK finds a match
+# when updating marker names for both allele orders
+rule generate_rsid_conversion_table:
+	input:
+		config['tmp_path'] + 'dot-markers/chr{chr}-dbsnp'
+	output:
+		conv_table=config['tmp_path'] + 'dot-markers/chr{chr}-dbsnp-conversion-table'
+	shell:
+		"""
+		cat {input} | awk '{{ split($10,a,"/"); {{print $2":"$4"_"a[1]"/"a[2]" "$5"\\n"$2":"$4"_"a[2]"/"a[1]" "$5 }} }}' > {output.conv_table}
+		"""
+
+# Prune the dbsnp conversion table to contain only markers with dot notation in original vcf.
+# List will be used to rename markers after dot notation markers are renamed to chr<CHR>:<POSITION>_<REF>/<ALT> 
+rule prune_dbsnp_conversion_table:
+	input:
+		conv_table=config['tmp_path'] + 'dot-markers/chr{chr}-dbsnp-conversion-table',
+		dot_markers=config['tmp_path'] + 'dot-markers/chr{chr}-dot-markers'
+	output:
+		conv_table_chr=config['tmp_path'] + 'dot-markers/chr{chr}-epacts-to-rsid'
+	shell:
+		"""
+		awk 'FNR==NR {{ a[$1];next }} $1 in a {{print $0}}' {input.dot_markers} {input.conv_table} | awk '!seen[$1]++' > {output.conv_table_chr}
+		"""
+
+# Convert rsids with dot-notation (unnamed) to format: chr<CHR>:<POSITION>_<REF>/<ALT>    
+rule generate_unique_markers:
     input:
         config['output_base'] + 'imputed/merged/{chr}-merged.vcf.gz'
     output:
         config['output_base'] + 'imputed/merged/unique_rsids/{chr}-merged-unique-rsids.vcf.gz'
     shell:
         """
-        zcat {input} | awk -v OFS='\t' '$0~/^#/{{print; next}} {{snp[$3]++}} $3=="."{{$3=$1":"$2"_"$4"/"$5}} snp[$3]>1 {{$3=$3"_"snp[$3]}} {{print}}' | gzip > {output}
+        zcat {input} | awk -v OFS='\t' '$0~/^#/{{print; next}} {{snp[$3]++}} $3=="."{{$3="chr"$1":"$2"_"$4"/"$5}} snp[$3]>1 {{$3=$3"_"snp[$3]}} {{print}}' | gzip > {output}
         """
+
+# Update markers to rsIDs
+rule update_markers_to_rsid:
+	input:
+		vcf=config['output_base'] + 'imputed/merged/unique_rsids/{chr}-merged-unique-rsids.vcf.gz',
+		conv_table_chr=config['tmp_path'] + 'dot-markers/chr{chr}-epacts-to-rsid'
+	output:
+		vcf=config['output_base'] + 'imputed/merged/unique_rsids_rsid_update/{chr}-merged_unique_rsids_dbsnp.vcf.gz'
+	params:
+		vcf=config['output_base'] + 'imputed/merged/unique_rsids_rsid_update/{chr}-merged_unique_rsids_dbsnp'
+	shell:
+		"""
+		plink \
+			--vcf {input.vcf} \
+			--update-name {input.conv_table_chr} \
+			--recode vcf bgz \
+			--out {params.vcf}
+		"""
 
 # Extract common markers
 rule extract_common:
     input:
-        config['output_base'] + 'imputed/merged/unique_rsids/{chr}-merged-unique-rsids.vcf.gz'
+        config['output_base'] + 'imputed/merged/unique_rsids_rsid_update/{chr}-merged_unique_rsids_dbsnp.vcf.gz'
     output:
-        config['output_base'] + 'imputed/merged/unique_rsids/common/{chr}-merged-unique-rsids-common.vcf.gz'
+        config['output_base'] + 'imputed/merged/unique_rsids/common/{chr}-merged-unique-rsids-dbsnp-common.vcf.gz'
     params:
         vcftools=vcftools
     shell:
