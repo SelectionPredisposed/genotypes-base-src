@@ -1,3 +1,4 @@
+# comment
 configfile: "config.json"
 chrom = list(range(1,23))
 
@@ -5,7 +6,19 @@ rule all:
     input:
         expand(config['output_base'] + '/imputed/markerinfo/{chr}-markerinfo-unique-rsid', chr=chrom)
 
-# Extracts markerinformation from VCF files. This is performed after conversion to unique rsid
+# extract lists of all markers with dot-notation in original vcfs
+rule get_dot_notation_list:
+   input:
+       vcf=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz' if config['dataset']=="HARVEST" else config['imputed_path'] + '{}.vcf.gz'
+   output:
+       dot_list=config['tmp_path'] + 'dot-markers/chr{chr}-dot-markers'
+   shell:
+       """
+       zcat {input.vcf} | awk '$0~/^#/{{next}} $3=="." {{print "chr"$1":"$2"_"$4"/"$5}}' > {output.dot_list}
+       """
+
+
+# Extracts marker information from VCF files (performed after updating to dbSNP rsid and unique markers for remainder)
 rule extract_info_score:
     input:
         vcf=config['output_base'] + '/imputed/merged/unique_rsids/{chr}-merged-unique-rsids.vcf.gz'
