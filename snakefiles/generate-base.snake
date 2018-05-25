@@ -38,7 +38,7 @@ rule split_dbsnp:
 # annotate markers without rsID from dbSNP reference 
 rule annotate_missing_rsids:
     input:
-        dbsnp=config['tmp_path'] + 'dbsnp/chr{chr}-dbsnp.vzf.gz', 
+        dbsnp=config['tmp_path'] + 'dbsnp/chr{chr}-dbsnp.vcf.gz', 
         vcf=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz' if config['dataset']=="HARVEST" else config['imputed_path'] + '{chr}.vcf.gz'
     output:
         vcf=config['tmp_path'] + 'imputed/dbsnp-update/{chr}-dbsnp.vcf.gz'
