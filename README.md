@@ -1,18 +1,14 @@
 # genotype-base-src
-### Script to generate a common HARVEST genotype base 
+### Background
+Currently there are two available batches of genotyping in MoBa at the server, HARVEST and ROTTERDAM1. These batches were QC'ed and imputed separately. The resulting VCFs from the Sanger Imputation Server requires some additional curation before they are ready for downstream analyses. This snakemake workflow takes care of these additional steps and spits out datasets ready for downstream analyses in /mnt/archive/<BATCH>/imputed/ for the respective batches.
 
-### How it works
-The workflow uses snakemake to generate base files for downstream analyses. Snakemake workflows (snakefiles) are located in the snakesfiles directory
+The workflow uses Snakemake workflow manager. The files located in snakefiles/ contain scripts for handling specific parts of the data curation and extracting useful metadata from the dataset.  
 
 ## generate-base.snake
-###Rule: merge_imputed
-QC was performed on moba12 and moba24 separately. This rule merges moba12 and moba24 per chromosome. Resulting files are in imputed/merged/
-
-### Rule: generate_unique_rsids
-Markers without an rsID is named . in the VCF files. This is not ideal for downstream analyses as some tools are not able to distinguish between the markers. This rule converts all dot-markers into EPACTS format: *CHR:POS_REF_ALT*. Output VCF in imputed/merged/unique_rsids/
-
-### Rule: extract_common
-Reducing number of markers in the input VCF files in downstream analyses reduces overhead. This rule extracts "common" markers by removing markers with MAF below 0.001.
+- Merges sub-batches (HARVEST only) 
+- Updates markers without an rsID to rsID if found in dbSNP (v.151) reference table. 
+- The markers without rsID (even after dbSNP annotation) are given a marker name on the format chr<CHR>:<POS>_<REF>_<ALT>
+- Markers with MAF > 0.001 are extracted and located in imputed/common/ whereas the full dataset is located in imputed/all/
 
 ## generate-aux.snake
 ### Generates auxilliary files useful for downstream analyses

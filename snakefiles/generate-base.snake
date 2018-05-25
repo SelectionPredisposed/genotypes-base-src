@@ -55,7 +55,7 @@ rule generate_unique_markers:
         config['output_base'] + 'imputed/all/{chr}-dbsnp-unique.vcf.gz'
     shell:
         """
-        zcat {input} | awk -v OFS='\t' '$0~/^#/{{print; next}} {{snp[$3]++}} $3=="."{{$3="chr"$1":"$2"_"$4"/"$5}} snp[$3]>1 {{$3=$3"_"snp[$3]}} {{print}}' | gzip > {output}
+        zcat {input} | awk -v OFS='\t' '$0~/^#/{{print; next}} {{snp[$3]++}} $3=="."{{$3="chr"$1":"$2"_"$4"/"$5}} snp[$3]>1 {{$3=$3"_"snp[$3]}} {{print}}' | bgzip > {output}
         tabix -f {output}
         """
 
@@ -69,6 +69,6 @@ rule extract_common:
         vcftools=vcftools
     shell:
         """
-        {params.vcftools} --gzvcf {input} --maf 0.001 --recode-INFO-all --recode --stdout | bgzip > {output}
+        bcftools view -q 0.001:minor {input} -Oz -o {output}   
         tabix -f {output}
         """

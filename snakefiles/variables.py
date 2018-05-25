@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 
 # Config files containing hard coded variableus
-configfile: os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'snakefiles', 'rotterdam1.json'))
+#configfile: os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'snakefiles', 'rotterdam1.json'))
+#configfile: os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'snakefiles', 'harvest.json'))
 
 ### snakemake_workflows initialization ########################################
 libdir = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'lib'))
