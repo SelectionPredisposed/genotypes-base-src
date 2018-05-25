@@ -2,7 +2,7 @@
     "dataset": "ROTTERDAM1",
     "output_base": "/mnt/archive/ROTTERDAM1/genotypes-base/",
     "tmp_path": "/mnt/scratch/helgeland/rotterdam1-base-tmp/",
-    "imputed_m12_path": "/mnt/archive/ROTTERDAM1/delivery-fhi/data/imputed/",
+    "imputed_path": "/mnt/archive/ROTTERDAM1/delivery-fhi/data/imputed/",
     "genotyped_qc_stem": "/mnt/archive/ROTTERDAM1/delivery-fhi/data/genotyped/genotyped",
     "to_imputation_stem": "",
 	"dbsnp": "/mnt/archive/helgeland/refdata/dbsnp151/All_20180423.vcf.gz"

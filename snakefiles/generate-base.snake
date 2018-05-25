@@ -28,7 +28,7 @@ rule split_dbsnp:
     input:
         dbsnp=config['dbsnp'] 
     output:
-        config['tmp_path'] + 'dbsnp/chr{chr}-dbsnp.vzf.gz' 
+        config['tmp_path'] + 'dbsnp/chr{chr}-dbsnp.vcf.gz' 
     shell:
         """
         bcftools view -r {wildcards.chr} {input.dbsnp} -Oz -o {output}
@@ -39,7 +39,7 @@ rule split_dbsnp:
 rule annotate_missing_rsids:
     input:
         dbsnp=config['tmp_path'] + 'dbsnp/chr{chr}-dbsnp.vzf.gz', 
-        vcf=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz' if config['dataset']=="HARVEST" else config['imputed_path']
+        vcf=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz' if config['dataset']=="HARVEST" else config['imputed_path'] + '{chr}.vcf.gz'
     output:
         vcf=config['tmp_path'] + 'imputed/dbsnp-update/{chr}-dbsnp.vcf.gz'
     shell:
@@ -69,6 +69,6 @@ rule extract_common:
         vcftools=vcftools
     shell:
         """
-        {params.vcftools} --gzvcf {input} --maf 0.001 --recode-INFO-all --recode --stdout | gzip -c > {output}
+        {params.vcftools} --gzvcf {input} --maf 0.001 --recode-INFO-all --recode --stdout | bgzip > {output}
         tabix -f {output}
         """
