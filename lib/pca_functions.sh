@@ -67,7 +67,7 @@ function pca {
         $5/pca_recoded_eig \
         $5/pca_convertf_params
 
-    PATH=$PATH:bin/eigenstrat/
+    PATH=$PATH:/home/oyvindhe/bin/
     convertf -p $5/pca_convertf_params
 
     # PCA

@@ -8,5 +8,6 @@
     "genotyped_qc_m24_stem": "/mnt/archive/HARVEST/delivery-fhi/data/genotyped/m24-genotyped",
     "to_imputation_m12_stem": "/mnt/archive/HARVEST/delivery-fhi/data/to_imputation/m12/m12-ready-for-imputation",
     "to_imputation_m24_stem": "/mnt/archive/HARVEST/delivery-fhi/data/to_imputation/m24/m24-ready-for-imputation",
+    "flaglist":"/mnt/archive/HARVEST/delivery-fhi/data/aux/flag-list/sample_flag_list-22-05-17.txt",
 	"dbsnp": "/mnt/archive/helgeland/refdata/dbsnp151/All_20180423.vcf.gz"
 }

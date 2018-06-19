@@ -1,13 +1,10 @@
-# Config files containing hard coded variables
-configfile: "config.json"
-
 # Runtime variables
 include: "variables.py"
 
 # Catch all rule
 rule all:
     input:
-        config['output_base'] + 'genotyped/merged/moba-qc-merge.bed',
+        expand(config['output_base'] + 'genotyped/merged/moba-qc-merge' + '{ext}', ext=['.bed','.bim','.fam']),
         expand(config['output_base'] + 'core/core_{role}_pihat_above_0_1_all_extended', role=['PARENT','OFFSPRING']),
         expand(config['output_base'] + 'core/core_{role}_pihat_above_0_1_all', role=['PARENT','OFFSPRING']),
         expand(config['output_base'] + 'core/core_{role}', role=['PARENT','OFFSPRING']),
@@ -17,33 +14,26 @@ rule all:
 # IBD checking in this workflow.
 rule merge_to_imputation:
     input:
-        m12bed=config['to_imputation_m12_stem'] + '.bed',
-        m12bim=config['to_imputation_m12_stem'] + '.bim',
-        m12fam=config['to_imputation_m12_stem'] + '.fam',
-        m24bed=config['to_imputation_m24_stem'] + '.bed',
-        m24bim=config['to_imputation_m24_stem'] + '.bim',
-        m24fam=config['to_imputation_m24_stem'] + '.fam'
+        m12imp=expand(config['to_imputation_m12_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
+        m24imp=expand(config['to_imputation_m24_stem'] + '{ext}', ext=['.bed','.bim','.fam'])
     output:
-        merged_bed=config['output_base'] + 'genotyped/merged/moba-qc-merge.bed',
-        merged_fam=config['output_base'] + 'genotyped/merged/moba-qc-merge.fam'
+        merged=expand(config['output_base'] + 'genotyped/merged/moba-qc-merge' + '{ext}', ext=['.bed','.bim','.fam'])
     params:
-        outstem=config['output_base'] + 'genotyped/merged/moba-qc-merge'
+        outstem=config['output_base'] + 'genotyped/merged/moba-qc-merge',
+        m12imp=config['to_imputation_m12_stem'],
+        m24imp=config['to_imputation_m24_stem']
     shell:
         """
-        # Remove the '.bed' extension to give PLINK the stem
-        # name=$(echo {output.merged_bed} | sed -e 's/\(.bed\)*$//g')
-
-        plinklocal \
-            --bed {input.m12bed} \
-            --bim {input.m12bim} \
-            --fam {input.m12fam} \
-            --bmerge {input.m24bed} {input.m24bim} {input.m24fam} \
+        plink \
+            --bfile {params.m12imp} \
+            --bmerge {params.m24imp} \
             --merge-mode 4 \
             --make-bed \
             --out {params.outstem}
         
-        mv {output.merged_fam} {output.merged_fam}.bak
-        awk '{{print $2,$2,0,0,0,-9}}' {output.merged_fam}.bak > {output.merged_fam}
+        # change output fam to correspond with vcfs containintg IIDs only
+        mv {params.outstem}.fam {params.outstem}.fam.bak
+        awk '{{print $2,$2,0,0,0,-9}}' {params.outstem}.fam.bak > {params.outstem}.fam
         """
 
 
@@ -52,14 +42,15 @@ rule merge_to_imputation:
 # and m24
 rule identify_core:
     input:
-        mobamerged=config['output_base'] + 'genotyped/merged/moba-qc-merge.bed',
+        mobamerged=expand(config['output_base'] + 'genotyped/merged/moba-qc-merge' + '{ext}', ext=['.bed','.bim','.fam']),
         flaglist=config['flaglist']
     output:
         pihat_full_exclusion=config['output_base'] + 'core/core_{role}_pihat_above_0_1_all_extended',
         pihat_list_exclusion=config['output_base'] + 'core/core_{role}_pihat_above_0_1_all',
         core_samples=config['output_base'] + 'core/core_{role}'
     params:
-        tmp=config['tmp_folder']
+        tmp=config['tmp_path'],
+        mobamerged=config['output_base'] + 'genotyped/merged/moba-qc-merge' 
     shell:
         """
         mkdir -p {params.tmp}
@@ -67,12 +58,9 @@ rule identify_core:
         # Extract core offspring with genotypesOK=T, phenotypesOK=T and coreOK=T
         awk -v role="{wildcards.role}" '$3==role && $20=="TRUE" && $21=="TRUE" && $22=="TRUE" {{print $1,$1}}' {input.flaglist} > {params.tmp}/flaglist_all_core_{wildcards.role}
         
-        # Remove suffix
-        name=$(echo {input.mobamerged} | sed -e 's/\(.bed\)*$//g')
-
         # Prune markers before running genome
         plink \
-            --bfile $name \
+            --bfile {params.mobamerged} \
             --keep {params.tmp}/flaglist_all_core_{wildcards.role} \
             --indep-pairwise 50 5 0.5 \
             --chr 1-22 \
@@ -82,7 +70,7 @@ rule identify_core:
 
         # Extract independent markers
         plink \
-            --bfile $name \
+            --bfile {params.mobamerged} \
             --keep {params.tmp}/flaglist_all_core_{wildcards.role} \
             --extract {params.tmp}/core-{wildcards.role}-indep.prune.in \
             --make-bed \
@@ -108,12 +96,12 @@ rule identify_core:
 # Calculates 10 principal components for parents and offspring separately
 rule generate_pca_covariates:
     input:
-        corelist=config['output_base'] + '/core/core_{role}',
+        corelist=config['output_base'] + 'core/core_{role}',
     output:
-        pcacovar=config['output_base'] + '/core/pca/pca-{role}.pca.evec'
+        pcacovar=config['output_base'] + 'core/pca/pca-{role}.pca.evec'
     params:
-        tmp_path=config['tmp_folder'],
-        lib_path=config['lib_path'],
+        tmp_path=config['tmp_path'],
+        lib_path=libdir,
         moba_stem=config['output_base'] + '/genotyped/merged/moba-qc-merge'
     shell:
         """
