@@ -1,2 +1,3 @@
 snakefiles/.snakemake
 */.snakemake
+.snakevenv
