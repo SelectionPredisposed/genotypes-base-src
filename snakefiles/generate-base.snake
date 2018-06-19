@@ -4,7 +4,7 @@ include: "variables.py"
 # Catch all rule
 rule all:
     input:
-        expand(config['output_base'] + 'imputed/common/{chr}-dbsnp-unique-common.vcf.gz', chr=chromx)
+        expand(config['output_base'] + 'imputed/common/{chr}.vcf.gz', chr=chromx)
 
 # Merge imputed autosomal chromosomes
 if config['dataset']=='HARVEST':
@@ -52,7 +52,7 @@ rule generate_unique_markers:
     input:
         config['tmp_path'] + 'imputed/dbsnp-update/{chr}-dbsnp.vcf.gz'
     output:
-        config['output_base'] + 'imputed/all/{chr}-dbsnp-unique.vcf.gz'
+        config['output_base'] + 'imputed/all/{chr}.vcf.gz'
     shell:
         """
         zcat {input} | awk -v OFS='\t' '$0~/^#/{{print; next}} {{snp[$3]++}} $3=="."{{$3="chr"$1":"$2"_"$4"/"$5}} snp[$3]>1 {{$3=$3"_"snp[$3]}} {{print}}' | bgzip > {output}
@@ -62,9 +62,9 @@ rule generate_unique_markers:
 # Extract common markers
 rule extract_common:
     input:
-        config['output_base'] + 'imputed/all/{chr}-dbsnp-unique.vcf.gz'
+        config['output_base'] + 'imputed/all/{chr}.vcf.gz'
     output:
-        config['output_base'] + 'imputed/common/{chr}-dbsnp-unique-common.vcf.gz'
+        config['output_base'] + 'imputed/common/{chr}.vcf.gz'
     params:
         vcftools=vcftools
     shell:
