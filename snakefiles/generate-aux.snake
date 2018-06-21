@@ -1,42 +1,48 @@
 # comment
-configfile: "config.json"
+#configfile: "config.json"
+
+include: "variables.py"
+
 chrom = list(range(1,23))
 
 rule all:
     input:
-        expand(config['output_base'] + '/imputed/markerinfo/{chr}-markerinfo-unique-rsid', chr=chrom)
+        expand(config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order', chr=chromx),
+        expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
+        expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx)
 
 # extract lists of all markers with dot-notation in original vcfs
 rule get_dot_notation_list:
    input:
-       vcf=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz' if config['dataset']=="HARVEST" else config['imputed_path'] + '{}.vcf.gz'
+       vcf=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz' if config['dataset']=="HARVEST" else config['imputed_path'] + '{chr}.vcf.gz'
    output:
-       dot_list=config['tmp_path'] + 'dot-markers/chr{chr}-dot-markers'
+       dot_list=config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers'
    shell:
        """
        zcat {input.vcf} | awk '$0~/^#/{{next}} $3=="." {{print "chr"$1":"$2"_"$4"/"$5}}' > {output.dot_list}
        """
 
-
 # Extracts marker information from VCF files (performed after updating to dbSNP rsid and unique markers for remainder)
 rule extract_info_score:
     input:
-        vcf=config['output_base'] + '/imputed/merged/unique_rsids/{chr}-merged-unique-rsids.vcf.gz'
+        vcf=config['output_base'] + 'all/{chr}.vcf.gz' 
     output:
-        markerinfo=config['output_base'] + '/imputed/markerinfo/{chr}-markerinfo-unique-rsid'
+        markerinfo=config['output_base'] + 'aux/markerinfo/{chr}-markerinfo'
     shell:
         """
         bcftools query -H -f '%CHROM\t%POS\t%ID\t%REF\t%ALT\t%INFO/TYPED\t%INFO/INFO\t%INFO/RefPanelAF\n' {input.vcf} > {output.markerinfo}
         """
 
 # Extracts order of samples in the VCF file
-# The sample order is the same for alle file, but check all to be sure
+# The sample order is the same for alle files, chr1 used
 rule extract_sample_order:
     input:
+        vcf=config['output_base'] + 'all/1.vcf.gz'
     output:
+        config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order'
     shell:
         """
-        bcftools query -l $MOBAMERGED > $OUTPATH/moba-merged-vcf-sample-order
+        bcftools query -l {input.vcf} > {output}
         """
 
 
