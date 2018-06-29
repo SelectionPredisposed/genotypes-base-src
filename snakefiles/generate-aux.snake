@@ -8,7 +8,7 @@ chrom = list(range(1,23))
 rule all:
     input:
         expand(config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order', chr=chromx),
-        expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
+        #expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
         expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx)
 
 # extract lists of all markers with dot-notation in original vcfs
@@ -23,9 +23,9 @@ rule get_dot_notation_list:
        """
 
 # Extracts marker information from VCF files (performed after updating to dbSNP rsid and unique markers for remainder)
-rule extract_info_score:
+rule extract_marker_info:
     input:
-        vcf=config['output_base'] + 'all/{chr}.vcf.gz' 
+        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz' 
     output:
         markerinfo=config['output_base'] + 'aux/markerinfo/{chr}-markerinfo'
     shell:
@@ -33,11 +33,33 @@ rule extract_info_score:
         bcftools query -H -f '%CHROM\t%POS\t%ID\t%REF\t%ALT\t%INFO/TYPED\t%INFO/INFO\t%INFO/RefPanelAF\n' {input.vcf} > {output.markerinfo}
         """
 
+rule merge_marker_info:
+    input:
+        expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx)
+    output:
+        config['output_base'] + 'aux/markerinfo/all-markerinfo'
+    shell:
+        """
+        HEADER="FALSE"
+        for i in {input}
+        do
+            if [ "$HEADER" == "FALSE" ]
+            then
+                head -n1 $i > {output}
+                HEADER="TRUE"
+            fi
+        
+            tail -n+2 $i >> {output}
+        done
+        """
+
+
+
 # Extracts order of samples in the VCF file
 # The sample order is the same for alle files, chr1 used
 rule extract_sample_order:
     input:
-        vcf=config['output_base'] + 'all/1.vcf.gz'
+        vcf=config['output_base'] + 'imputed/all/1.vcf.gz'
     output:
         config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order'
     shell:

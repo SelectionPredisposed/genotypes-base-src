@@ -4,7 +4,9 @@ include: "variables.py"
 # Catch all rule
 rule all:
     input:
-        expand(config['output_base'] + 'imputed/common/{chr}.vcf.gz', chr=chromx)
+        expand(config['output_base'] + 'imputed/common/{chr}.vcf.gz', chr=chromx),
+        expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'], chr=chromx)
+
 
 # Merge imputed autosomal chromosomes
 if config['dataset']=='HARVEST':
@@ -72,3 +74,41 @@ rule extract_common:
         bcftools view -q 0.001:minor {input} -Oz -o {output}   
         tabix -f {output}
         """
+
+# Convert common markerset to PLINK bed format
+rule vcf_to_bed:
+    input:
+        config['output_base'] + 'imputed/common/{chr}.vcf.gz' 
+    output:
+        expand(config['output_base'] + 'imputed/common-bedset/chr/{{chr}}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'])
+    params:
+        config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common'
+    shell:
+        """
+        plink \
+            --vcf {input} \
+            --double-id \
+            --make-bed \
+            --out {params}
+        """
+
+rule merge_bed_chr:
+    input:
+        expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'], chr=chromx)
+    output:
+        lst=config['tmp_path'] + 'bedfile_list',
+        bedset=expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'])
+    params:
+        tmp=config['tmp_path'],
+        filelist=expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common', chr=chromx),
+        bedset=config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common'
+    shell:
+        """
+        echo {params.filelist} | tr ' ' '\n' > "{params.tmp}/bedfile_list"
+
+        plink \
+            --merge-list {params.tmp}/bedfile_list \
+            --merge-mode 4 \
+            --out {params.bedset}
+        """
+    
