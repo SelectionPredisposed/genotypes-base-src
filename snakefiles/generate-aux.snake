@@ -33,6 +33,7 @@ rule extract_marker_info:
         bcftools query -H -f '%CHROM\t%POS\t%ID\t%REF\t%ALT\t%INFO/TYPED\t%INFO/INFO\t%INFO/RefPanelAF\n' {input.vcf} > {output.markerinfo}
         """
 
+# Merge markerinfo files
 rule merge_marker_info:
     input:
         expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx)
@@ -40,12 +41,14 @@ rule merge_marker_info:
         config['output_base'] + 'aux/markerinfo/all-markerinfo'
     shell:
         """
+        # Get header from first file
         HEADER="FALSE"
         for i in {input}
         do
             if [ "$HEADER" == "FALSE" ]
             then
-                head -n1 $i > {output}
+                # fix header by removing #, numbered prefix and leading whitespace
+                head -n1 $i | sed 's/#//' | sed 's/\[[0-9]\]//g' | sed 's/^ //' > {output}
                 HEADER="TRUE"
             fi
         

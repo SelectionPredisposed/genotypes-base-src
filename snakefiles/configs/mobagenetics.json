@@ -1,0 +1,12 @@
+{
+    "dataset": "MOBAGENETICS",
+    "output_base": "/mnt/archive/MOBAGENETICS/genotypes-base/",
+    "tmp_path": "/mnt/scratch/helgeland/mobagenetics-base-tmp/",
+    "harvest_base_imputed" : "/mnt/archive/HARVEST/genotypes-base/imputed/all/",
+    "rot1_base_imputed" : "/mnt/archive/ROTTERDAM1/genotypes-base/imputed/all/",
+    "harvest_base_genotyped_stem" : "/mnt/archive/HARVEST/genotypes-base/genotyped/merged/moba-qc-merge",
+    "rot1_base_genotyped_stem": "/mnt/archive/ROTTERDAM1/delivery-fhi/data/genotyped/genotyped",
+    "core_offspring_harvest": "/mnt/archive/helgeland/deliveries/FREATHY_BW_2018/resources/core_offspring_harvest_from_flaglist_n9884",
+    "core_offspring_rotterdam1": "/mnt/archive/ROTTERDAM1/genotypes-base/core/core_OFFSPRING"
+}
+

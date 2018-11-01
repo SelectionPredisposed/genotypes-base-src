@@ -1,0 +1,114 @@
+# Runtime variables
+include: "variables.py"
+
+rule all:
+    input:
+        config['output_base'] + 'genotyped/test/done.txt'
+        #expand(config['output_base'] + 'genotyped/genotyped' + '{ext}', ext=['.bed','.bim','.fam'])
+
+# merge non-imputed QC'ed HARVEST and ROT1
+# NB!! Only merges on list of overlapping markers
+rule merge_genotyped:
+    input:
+        harvest=expand(config['harvest_base_genotyped_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
+        rot1=expand(config['rot1_base_genotyped_stem'] + '{ext}', ext=['.bed','.bim','.fam'])
+    output:
+        config['output_base'] + 'genotyped/test/done.txt'
+        #expand(config['output_base'] + 'genotyped/genotyped' + '{ext}', ext=['.bed','.bim','.fam'])
+    params:
+        harvest=config['harvest_base_genotyped_stem'],
+        rot1=config['rot1_base_genotyped_stem'],
+        outstem=config['output_base'] + 'genotyped/genotyped',
+        tmp=config['tmp_path'],
+        test=config['output_base'] + 'genotyped/test/done.txt',
+        resourcesdir=resourcesdir,
+        libdir=libdir
+    shell:
+        """
+        source {params.libdir}/pca_functions.sh
+        #set +e
+        # remove ambig makrers from Harvest
+        #awk '!($5=="G" && $6=="C") && !($5=="C" && $6=="G") && !($5=="A" && $6=="T") && !($5=="T" && $6=="A"){{print $2}}' {params.harvest}.bim > {params.tmp}/harvest_no_ambig.txt
+
+        
+        t=0
+        if [ t == 1 ];
+        then
+        plink \
+            --bfile {params.harvest} \
+            --extract {params.resourcesdir}/marker_overlap_rot1_harvest.txt \
+            --make-bed \
+            --out {params.tmp}/harvest_overlap
+
+        plink \
+            --bfile {params.rot1} \
+            --extract {params.resourcesdir}/marker_overlap_rot1_harvest.txt \
+            --make-bed \
+            --out {params.tmp}/rot1_overlap
+
+        plink \
+            --bfile {params.tmp}/harvest_overlap \
+            --bmerge {params.tmp}/rot1_overlap \
+            --merge-mode 4 \
+            --out {params.tmp}/merged
+
+        plink \
+            --bfile {params.tmp}/merged \
+            --maf 0.01 \
+            --indep-pairwise 200 100 0.1 \
+            --out {params.tmp}/merged_prunetmp
+
+        plink \
+            --bfile {params.tmp}/merged \
+            --extract {params.tmp}/merged_prunetmp.prune.in \
+            --make-bed \
+            --out {params.tmp}/merged_pruned
+        fi
+        
+        pca \
+            {params.tmp}/merged_pruned \
+            {params.tmp}/merged_pca \
+            {params.tmp}
+
+        touch {params.test}
+        """
+
+# Check IBD for the merged set
+rule check_ibd:
+    input:
+        merged_pruned_bed=config['tmp_path'] + '/merged_pruned.bed',
+        merged_pruned_fam=config['tmp_path'] + '/merged_pruned.bed',
+        core_offspring_harvest=config['core_offspring_harvest'],
+        core_offspring_rotterdam1=config['core_offspring_rotterdam1']
+    output:
+        ibd=config['output_base'] + 'ibd/mobagenetics.genome.gz'
+    params:
+        merged_pruned_stem=config['tmp_path'] + '/merged_pruned',
+        ibd=config['output_base'] + 'ibd/mobagenetics',
+        ibd_all=config['output_base'] + 'ibd/mobagenetics_full',
+        tmp=config['tmp_path']
+    shell:
+        """
+        # merge the two core lists
+        cat {input.core_offspring_harvest} {input.core_offspring_rotterdam1} > {params.tmp}/core_offspring_merged
+        
+        # Fix the fam file to contain SentrixIDs in both FID and IID column in order to
+        # comply with the core lists
+        cp {params.merged_pruned_stem}.fam {params.merged_pruned_stem}.fam.bak
+        awk '{{ print $2,$2,$3,$4,$5,$6 }}' {params.merged_pruned_stem}.fam.bak > {params.merged_pruned_stem}.fam  
+
+        # Run genome on core offspring
+        plink \
+            --bfile {params.merged_pruned_stem} \
+            --keep  {params.tmp}/core_offspring_merged \
+            --genome gz full \
+            --out {params.ibd}
+
+        # Run genome on the entire merged sample
+        plink \
+            --bfile {params.merged_pruned_stem} \
+            --genome gz full \
+            --min 0.1 \
+            --out {params.ibd_all}
+        """
+

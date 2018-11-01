@@ -1,0 +1,129 @@
+# Runtime variables
+include: "variables.py"
+
+rule all:
+    input:
+        expand(config['output_base'] + 'imputed/all/{chr}.vcf.gz', chr=chromx),
+        expand(config['output_base'] + 'imputed/all/{chr}.vcf.gz.tbi', chr=chromx),
+        expand(config['output_base'] + 'genotyped/allbatch_genotyped/{chr}.vcf.gz', chr=chromx),
+        expand(config['output_base'] + 'genotyped/allbatch_genotyped/merged/autosomes.{ext}', ext=['bed','bim','fam']),
+        expand(config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{chr}.{ext}', chr=chrom, ext=['bed','bim','fam']),
+        expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam'])
+
+# merge full imputed VCFs: HARVEST with ROT1
+rule merge_vcf:
+    input:
+        harvest=config['harvest_base_imputed'] + "{chr}.vcf.gz",
+        rot1=config['rot1_base_imputed'] + "{chr}.vcf.gz"
+    output:
+        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz',
+        tbi=config['output_base'] + 'imputed/all/{chr}.vcf.gz.tbi'
+    params:
+        bcftools=bcftools
+    shell:
+        """
+        {params.bcftools} merge --info-rules INFO:avg -o {output.vcf} -Oz {input.harvest} {input.rot1}
+        tabix -f {output.vcf}
+        """
+
+# merge common bedset: HARVEST with ROT1
+rule merge_common_bedset:
+    input:
+        harvest=expand('/mnt/archive/HARVEST/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam']),
+        rot1=expand('/mnt/archive/ROTTERDAM1/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam'])
+    output:
+        outbed=expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam'])
+    params:
+        inharvest='/mnt/archive/HARVEST/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common',
+        inrot1='/mnt/archive/ROTTERDAM1/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common',
+        outbed=config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common'
+    shell:
+        """
+        plink \
+            --bfile {params.inharvest} \
+            --bmerge {params.inrot1} \
+            --merge-mode 4 \
+            --out {params.outbed}
+        """
+
+
+# remove samples with too high IBD across batches
+# rule ibd_prune_core_offspring:
+#     input:
+#         harvest_core_offspring=config['core_offspring_harvest'],
+#         rot1_core_offspring=config['core_offspring_rot1']
+#     output:
+#     params:
+#     shell:
+#         """
+#         # Merge the core lists
+#         cat {input.harvest_core_offspring} {input.rot1_core_offspring} > {tmp}
+#         """
+
+# filter out genotyped markers from merged set
+# TYPED + INFO=1 equals all markers genotyped across batches
+# TODO: Change this to use the slower BCFtools filtering instead. The grep approach
+# does not output VCF standards compliant files
+rule filter_genotyped:
+    input:
+        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz',
+        tbi=config['output_base'] + 'imputed/all/{chr}.vcf.gz.tbi'
+    output:
+        vcf=config['output_base'] + 'genotyped/allbatch_genotyped/{chr}.vcf.gz'
+    params:
+    shell:
+        """
+        # Get the header of the VCF
+        # The || forces command to return true. Needed since command sends a 141 (sigpipe) error
+        # due to open file handle (probably) - dirty hack to prevent having to wait for full read of file
+        zcat {input.vcf} | head -n150 | grep "^#" | gzip > {output.vcf} || true
+
+        # Filter markers with TYPED & INFO=1 in INFO field
+        zcat {input.vcf} | grep -v "^#" | grep "TYPED" | gzip >> {output.vcf}
+        
+        """
+
+# Convert VCFs into bedsets
+rule vcf_to_bed:
+    input:
+        vcf=config['output_base'] + 'genotyped/allbatch_genotyped/{chr}.vcf.gz'
+    output:
+        expand(config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{{chr}}.{ext}', ext=['bed','bim','fam'])
+    params:
+        out_stem=config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{chr}'
+    shell:
+        """
+        plink \
+            --vcf {input.vcf} \
+            --double-id \
+            --make-bed \
+            --out {params.out_stem}
+        """
+
+# generate filelist before merging bedsets
+rule generate_merge_filelist:
+    input:
+        expand(config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{chr}.{ext}', chr=chrom, ext=['bed','bim','fam'])
+    output:
+        config['tmp_path']  + 'filelist_merge'
+    params:
+        expand(config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{chr}', chr=chrom)
+    run:
+
+        f = open(output[0], 'w')
+
+        for item in params[0]:
+            f.write("%s\n" % item)
+
+# merge filtered vcfs
+rule merge_bedsets:
+    input:
+        config['tmp_path'] + 'filelist_merge'
+    output:
+        expand(config['output_base'] + 'genotyped/allbatch_genotyped/merged/autosomes.{ext}', ext=['bed','bim','fam'])
+    params:
+        outstem=config['output_base'] + 'genotyped/allbatch_genotyped/merged/autosomes'
+    shell:
+        """
+        plink --merge-list {input} --merge-mode 4 --out {params.outstem}
+        """

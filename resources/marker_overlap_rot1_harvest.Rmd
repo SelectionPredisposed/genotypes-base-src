@@ -1,0 +1,31 @@
+---
+title: "Extract mother child pairs"
+author: "Øyvind Helgeland"
+date: "September 12, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+bim.rot1 <- read.table('/home/oyvind/hunt-cloud/mnt/archive/ROTTERDAM1/delivery-fhi/data/genotyped/genotyped.bim', header = F, stringsAsFactors = F)
+bim.harvest <- read.table('/home/oyvind/hunt-cloud/mnt/archive/HARVEST/genotypes-base/genotyped/merged/moba-qc-merge.bim', header = F, stringsAsFactors = F)
+
+bim.harvest$identity <- paste0(bim.harvest$V1, bim.harvest$V2, bim.harvest$V4, bim.harvest$V5, bim.harvest$V6)
+
+bim.rot1$identity <- paste0(bim.rot1$V1, bim.rot1$V2, bim.rot1$V4, bim.rot1$V5, bim.rot1$V6)
+
+sum(bim.harvest$identity %in% bim.rot1$identity)
+
+rsinboth <- bim.harvest[bim.harvest$identity %in% bim.rot1$identity,]$V2
+
+write.table(x = rsinboth, file = '/home/oyvind/Downloads/rsinboth.txt', quote = F, row.names = F, col.names = F)
+
+#subset(bim.rot1, V2 =='rs35383955')
+#subset(bim.harvest, V2 =='rs35383955')
+
+#bim.harvest[bim.harvest$V2 %in% bim.rot1$V2,]
+```
+

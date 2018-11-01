@@ -5,10 +5,12 @@ include: "variables.py"
 rule all:
     input:
         expand(config['output_base'] + 'imputed/common/{chr}.vcf.gz', chr=chromx),
-        expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'], chr=chromx)
+        expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'], chr=chromx),
+        expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'])
 
 
-# Merge imputed autosomal chromosomes
+# Merge imputed datasets, (autosomal + X), on a per chromosome basis
+# NB: This only performed on HARVEST with two internal batches (moba12 and moba24)
 if config['dataset']=='HARVEST':
     rule merge_imputed:
         input:
@@ -25,7 +27,8 @@ if config['dataset']=='HARVEST':
             tabix -f {output.vcf}
         """
 
-# split the dbsnp file containing all chr into one file per chr to parallel subsequent operations
+# To prepare for updating marker names to dbsnp reference, the dbsnp file containing all chr
+# is split into one file per chr to allow for parallel subsequent operations
 rule split_dbsnp:
     input:
         dbsnp=config['dbsnp'] 
@@ -37,7 +40,7 @@ rule split_dbsnp:
         tabix -f {output}
         """
 
-# annotate markers without rsID from dbSNP reference 
+# annotate markers without rsID in imputed dataset to rsid from dbSNP reference 
 rule annotate_missing_rsids:
     input:
         dbsnp=config['tmp_path'] + 'dbsnp/chr{chr}-dbsnp.vcf.gz', 
@@ -49,7 +52,8 @@ rule annotate_missing_rsids:
         bcftools annotate --annotations {input.dbsnp} --columns ID --output {output.vcf} --output-type z {input.vcf}
         """
 
-# Convert rsids with dot-notation (unnamed) to format: chr<CHR>:<POSITION>_<REF>/<ALT>    
+# Converts rsids with dot-notation (no rsID in dbsnp) to format: chr<CHR>:<POSITION>_<REF>/<ALT>    
+# and suffixes any duplicate rsids with a number to avoid duplicate rsids
 rule generate_unique_markers:
     input:
         config['tmp_path'] + 'imputed/dbsnp-update/{chr}-dbsnp.vcf.gz'
@@ -61,14 +65,12 @@ rule generate_unique_markers:
         tabix -f {output}
         """
 
-# Extract common markers
+# Extract common markers from VCFs. Here the minimum allele frequency is set to 0.1% for the least frequent allele
 rule extract_common:
     input:
         config['output_base'] + 'imputed/all/{chr}.vcf.gz'
     output:
         config['output_base'] + 'imputed/common/{chr}.vcf.gz'
-    params:
-        vcftools=vcftools
     shell:
         """
         bcftools view -q 0.001:minor {input} -Oz -o {output}   
@@ -92,6 +94,7 @@ rule vcf_to_bed:
             --out {params}
         """
 
+# Merge bedsets per chr into single bedset
 rule merge_bed_chr:
     input:
         expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'], chr=chromx)
