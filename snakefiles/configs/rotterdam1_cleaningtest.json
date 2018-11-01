@@ -1,0 +1,10 @@
+{
+    "dataset": "ROTTERDAM1",
+    "output_base": "/mnt/iscratch/ROTTERDAM1/genotypes-base/",
+    "flaglist":"/mnt/archive/ROTTERDAM1/delivery-fhi/data/aux/flag-list/sample_flag_list.txt",
+    "tmp_path": "/mnt/scratch/helgeland/rotterdam1-base-tmp/",
+    "imputed_path": "/mnt/archive/ROTTERDAM1/delivery-fhi/data/imputed/",
+    "genotyped_qc_stem": "/mnt/archive/ROTTERDAM1/delivery-fhi/data/genotyped/genotyped",
+    "to_imputation_stem": "",
+	"dbsnp": "/mnt/archive/helgeland/refdata/dbsnp151/All_20180423.vcf.gz"
+}

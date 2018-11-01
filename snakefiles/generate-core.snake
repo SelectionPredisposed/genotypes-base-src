@@ -10,88 +10,110 @@ rule all:
         expand(config['output_base'] + 'core/core_{role}', role=['PARENT','OFFSPRING']),
         expand(config['output_base'] + 'core/pca/pca-{role}.pca.evec', role=['PARENT','OFFSPRING'])
 
+# HARVEST ONLY
 # Merges the genotyped datasets (the datasets sent for imputation) to use for downstream
 # IBD checking in this workflow.
-rule merge_to_imputation:
-    input:
-        m12imp=expand(config['to_imputation_m12_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
-        m24imp=expand(config['to_imputation_m24_stem'] + '{ext}', ext=['.bed','.bim','.fam'])
-    output:
-        merged=expand(config['output_base'] + 'genotyped/merged/moba-qc-merge' + '{ext}', ext=['.bed','.bim','.fam'])
-    params:
-        outstem=config['output_base'] + 'genotyped/merged/moba-qc-merge',
-        m12imp=config['to_imputation_m12_stem'],
-        m24imp=config['to_imputation_m24_stem']
-    shell:
-        """
-        plink \
-            --bfile {params.m12imp} \
-            --bmerge {params.m24imp} \
-            --merge-mode 4 \
-            --make-bed \
-            --out {params.outstem}
-        
-        # change output fam to correspond with vcfs containintg IIDs only
-        mv {params.outstem}.fam {params.outstem}.fam.bak
-        awk '{{print $2,$2,0,0,0,-9}}' {params.outstem}.fam.bak > {params.outstem}.fam
-        """
+if config['dataset']=='HARVEST':
+    rule merge_to_imputation:
+        input:
+            m12imp=expand(config['to_imputation_m12_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
+            m24imp=expand(config['to_imputation_m24_stem'] + '{ext}', ext=['.bed','.bim','.fam'])
+        output:
+            merged=expand(config['output_base'] + 'genotyped/merged/moba-qc-merge' + '{ext}', ext=['.bed','.bim','.fam'])
+        params:
+            outstem=config['output_base'] + 'genotyped/merged/moba-qc-merge',
+            m12imp=config['to_imputation_m12_stem'],
+            m24imp=config['to_imputation_m24_stem']
+        shell:
+            """
+            plink \
+                --bfile {params.m12imp} \
+                --bmerge {params.m24imp} \
+                --merge-mode 4 \
+                --make-bed \
+                --out {params.outstem}
+            
+            # change output fam to correspond with vcfs containintg IIDs only
+            mv {params.outstem}.fam {params.outstem}.fam.bak
+            awk '{{print $2,$2,0,0,0,-9}}' {params.outstem}.fam.bak > {params.outstem}.fam
+            """
 
+    # HARVEST ONLY
+    # Identifies the core samples for parents and offspring separately. The rule
+    # implements an IBD-filter to remove samples with excess IBD after merging m12
+    # and m24
+    rule identify_core:
+        input:
+            mobamerged=expand(config['output_base'] + 'genotyped/merged/moba-qc-merge' + '{ext}', ext=['.bed','.bim','.fam']),
+            flaglist=config['flaglist']
+        output:
+            pihat_full_exclusion=config['output_base'] + 'core/core_{role}_pihat_above_0_1_all_extended',
+            pihat_list_exclusion=config['output_base'] + 'core/core_{role}_pihat_above_0_1_all',
+            core_samples=config['output_base'] + 'core/core_{role}'
+        params:
+            tmp=config['tmp_path'],
+            mobamerged=config['output_base'] + 'genotyped/merged/moba-qc-merge' 
+        shell:
+            """
+            mkdir -p {params.tmp}
+            # OFFSPRING
+            # Extract core offspring with genotypesOK=T, phenotypesOK=T and coreOK=T
+            awk -v role="{wildcards.role}" '$3==role && $20=="TRUE" && $21=="TRUE" && $22=="TRUE" {{print $1,$1}}' {input.flaglist} > {params.tmp}/flaglist_all_core_{wildcards.role}
+            
+            # Prune markers before running genome
+            plink \
+                --bfile {params.mobamerged} \
+                --keep {params.tmp}/flaglist_all_core_{wildcards.role} \
+                --indep-pairwise 50 5 0.5 \
+                --chr 1-22 \
+                --maf 0.01 \
+                --geno 0.02 \
+                --out {params.tmp}/core-{wildcards.role}-indep
 
-# Identifies the core samples for parents and offspring separately. The rule
-# implements an IBD-filter to remove samples with excess IBD after merging m12
-# and m24
-rule identify_core:
-    input:
-        mobamerged=expand(config['output_base'] + 'genotyped/merged/moba-qc-merge' + '{ext}', ext=['.bed','.bim','.fam']),
-        flaglist=config['flaglist']
-    output:
-        pihat_full_exclusion=config['output_base'] + 'core/core_{role}_pihat_above_0_1_all_extended',
-        pihat_list_exclusion=config['output_base'] + 'core/core_{role}_pihat_above_0_1_all',
-        core_samples=config['output_base'] + 'core/core_{role}'
-    params:
-        tmp=config['tmp_path'],
-        mobamerged=config['output_base'] + 'genotyped/merged/moba-qc-merge' 
-    shell:
-        """
-        mkdir -p {params.tmp}
-        # OFFSPRING
-        # Extract core offspring with genotypesOK=T, phenotypesOK=T and coreOK=T
-        awk -v role="{wildcards.role}" '$3==role && $20=="TRUE" && $21=="TRUE" && $22=="TRUE" {{print $1,$1}}' {input.flaglist} > {params.tmp}/flaglist_all_core_{wildcards.role}
-        
-        # Prune markers before running genome
-        plink \
-            --bfile {params.mobamerged} \
-            --keep {params.tmp}/flaglist_all_core_{wildcards.role} \
-            --indep-pairwise 50 5 0.5 \
-            --chr 1-22 \
-            --maf 0.01 \
-            --geno 0.02 \
-            --out {params.tmp}/core-{wildcards.role}-indep
+            # Extract independent markers
+            plink \
+                --bfile {params.mobamerged} \
+                --keep {params.tmp}/flaglist_all_core_{wildcards.role} \
+                --extract {params.tmp}/core-{wildcards.role}-indep.prune.in \
+                --make-bed \
+                --out {params.tmp}/core-{wildcards.role}-autosomal-pruned
 
-        # Extract independent markers
-        plink \
-            --bfile {params.mobamerged} \
-            --keep {params.tmp}/flaglist_all_core_{wildcards.role} \
-            --extract {params.tmp}/core-{wildcards.role}-indep.prune.in \
-            --make-bed \
-            --out {params.tmp}/core-{wildcards.role}-autosomal-pruned
+            # running genome on pruned autosomal data
+            plink \
+                --bfile {params.tmp}/core-{wildcards.role}-autosomal-pruned \
+                --genome \
+                --out {params.tmp}/core-{wildcards.role}-genome
 
-        # running genome on pruned autosomal data
-        plink \
-            --bfile {params.tmp}/core-{wildcards.role}-autosomal-pruned \
-            --genome \
-            --out {params.tmp}/core-{wildcards.role}-genome
+            # Extract only rows with pihat > 0.1
+            tail -n+2 {params.tmp}/core-{wildcards.role}-genome.genome | awk '$10 > 0.1' > {output.pihat_full_exclusion}
 
-        # Extract only rows with pihat > 0.1
-        tail -n+2 {params.tmp}/core-{wildcards.role}-genome.genome | awk '$10 > 0.1' > {output.pihat_full_exclusion}
+            # Get one side in the pair of samples with pihat above threshold of 0.1
+            tail -n+2 {params.tmp}/core-{wildcards.role}-genome.genome | awk '$10 > 0.1 {{print $3,$4}}' | sort | uniq > {output.pihat_list_exclusion}
 
-        # Get one side in the pair of samples with pihat above threshold of 0.1
-        tail -n+2 {params.tmp}/core-{wildcards.role}-genome.genome | awk '$10 > 0.1 {{print $3,$4}}' | sort | uniq > {output.pihat_list_exclusion}
+            # Core samples
+            awk 'NR==FNR {{ ex[$0]; next}} !($0 in ex) {{print $0}}' {output.pihat_list_exclusion} {params.tmp}/flaglist_all_core_{wildcards.role} > {output.core_samples}
 
-        # Core samples
-        awk 'NR==FNR {{ ex[$0]; next}} !($0 in ex) {{print $0}}' {output.pihat_list_exclusion} {params.tmp}/flaglist_all_core_{wildcards.role} > {output.core_samples}
+            """
 
-        """
+# ROTTERDAM1 ONLY
+if config['dataset']=="ROTTERDAM":
+    
+    # Extract core lists from flag list
+    rule generate_core_lists_rot1:
+        input:
+            flaglist=config['flaglist']
+        output:
+            core_offspring=config['output_base'] + 'core/core_OFFSPRING',
+            core_parent=config['output_base'] + 'core/core_PARENT'
+        shell:
+            """
+            # Core list for offspring
+            awk '$12=="TRUE" && $14=="TRUE" && $15=="TRUE" && $16=="OFFSPRING" {{ print $2"\t"$2 }}' {input.flaglist} > {output.core_offspring}
+
+            # Core list for parent
+            awk '$12=="TRUE" && $14=="TRUE" && $15=="TRUE" && $16=="FOUNDER" {{ print $2"\t"$2 }}' {input.flaglist} > {output.core_parent}        
+
+            """
 
 # Calculates 10 principal components for parents and offspring separately
 rule generate_pca_covariates:

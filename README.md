@@ -1,14 +1,15 @@
 # genotype-base-src
 ### Background
-Currently there are two available batches of genotyping in MoBa at the server, HARVEST and ROTTERDAM1. These batches were QC'ed and imputed separately. The resulting VCFs from the Sanger Imputation Server requires some additional curation before they are ready for downstream analyses. This snakemake workflow takes care of these additional steps and spits out datasets ready for downstream analyses in /mnt/archive/<BATCH>/imputed/ for the respective batches.
+Currently there are two available samples with genotyping in MoBa, HARVEST and ROTTERDAM1. These samples were QC'ed and imputed separately. The resulting VCFs from the Sanger Imputation Server require additional curation before they are ready for downstream analyses. This workflow generates a baseline dataset for the respective samples and merges the two into a single dataset for unified analyses.
 
 The workflow uses Snakemake workflow manager. The files located in snakefiles/ contain scripts for handling specific parts of the data curation and extracting useful metadata from the dataset.  
 
 ## generate-base.snake
-- Merges sub-batches (HARVEST only) 
-- Updates markers without an rsID to rsID if found in dbSNP (v.151) reference table. 
-- The markers without rsID (even after dbSNP annotation) are given a marker name on the format chr<CHR>:<POS>_<REF>_<ALT>
-- Markers with MAF > 0.001 are extracted and located in imputed/common/ whereas the full dataset is located in imputed/all/
+- Merges sub-batches within each sample (HARVEST only, ref. moba12 and moba24 within HARVEST) 
+- Update markers without an rsID to rsID if found in dbSNP (v.151) reference. 
+- Markers with no rsID in dbsnp are given a marker name on the format chr<CHR>:<POS>_<REF>/<ALT>
+- Common markers (MAF > 0.001) are extracted and located in imputed/common/ whereas the full dataset is located in imputed/all/
+- A PLINK bedset (bed/bim/fam) are generated for the common markers for convenience, located in imputed/common-bedset/
 
 ## generate-aux.snake
 ### Generates auxilliary files useful for downstream analyses
