@@ -36,12 +36,31 @@ rule merge_common_bedset:
     params:
         inharvest='/mnt/archive/HARVEST/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common',
         inrot1='/mnt/archive/ROTTERDAM1/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common',
-        outbed=config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common'
+        outbed=config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common',
+        tmp=config['tmp_path']
     shell:
         """
         plink \
             --bfile {params.inharvest} \
             --bmerge {params.inrot1} \
+            --merge-mode 4 \
+            --out {params.tmp}triallelic || true
+
+        plink \
+            --bfile {params.inharvest} \
+            --exclude {params.tmp}triallelic.missnp \
+            --make-bed \
+            --out {params.tmp}harvest_biallelic_only
+
+        plink \
+            --bfile {params.inrot1} \
+            --exclude {params.tmp}triallelic.missnp \
+            --make-bed \
+            --out {params.tmp}rot1_biallelic_only
+        
+        plink \
+            --bfile {params.tmp}harvest_biallelic_only \
+            --bmerge {params.tmp}rot1_biallelic_only \
             --merge-mode 4 \
             --out {params.outbed}
         """
