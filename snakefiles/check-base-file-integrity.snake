@@ -1,6 +1,3 @@
-# Config files containing hard coded variables
-configfile: "config.json"
-
 # Runtime variables
 include: "variables.py"
 

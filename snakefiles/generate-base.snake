@@ -80,18 +80,45 @@ rule extract_common:
 # Convert common markerset to PLINK bed format
 rule vcf_to_bed:
     input:
-        config['output_base'] + 'imputed/common/{chr}.vcf.gz' 
+        vcf=config['output_base'] + 'imputed/common/{chr}.vcf.gz',
+        update_ids=config['update_ids'],
+        update_parents=config['update_parents'],
+        update_sex=config['update_sex'],
     output:
         expand(config['output_base'] + 'imputed/common-bedset/chr/{{chr}}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'])
     params:
-        config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common'
+        output=config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common',
+        tmp=config['tmp_path']
     shell:
         """
+        # Convert vcf to bed
         plink \
-            --vcf {input} \
+            --vcf {input.vcf} \
             --double-id \
             --make-bed \
-            --out {params}
+            --out {params.tmp}/{wildcards.chr}-noinfo
+        
+        # Update IDs
+        plink \
+            --bfile {params.tmp}/{wildcards.chr}-noinfo \
+            --update-ids {input.update_ids} \
+            --make-bed \
+            --out {params.tmp}/{wildcards.chr}-id
+
+        # Update parents
+        plink \
+            --bfile {params.tmp}/{wildcards.chr}-id \
+            --update-parents {input.update_parents} \
+            --make-bed \
+            --out {params.tmp}/{wildcards.chr}-id-parents
+
+        # Update sex
+        plink \
+            --bfile {params.tmp}/{wildcards.chr}-id-parents \
+            --update-sex {input.update_sex} \
+            --make-bed \
+            --out {params.output}
+            
         """
 
 # Merge bedsets per chr into single bedset

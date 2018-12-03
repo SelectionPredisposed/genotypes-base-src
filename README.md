@@ -11,6 +11,10 @@ The workflow uses Snakemake workflow manager. The files located in snakefiles/ c
 - Common markers (MAF > 0.001) are extracted and located in imputed/common/ whereas the full dataset is located in imputed/all/
 - A PLINK bedset (bed/bim/fam) are generated for the common markers for convenience, located in imputed/common-bedset/
 
+## generate-core.snake
+- Generates PCAs for core samples (unrelated Norwegian ancestry with IBD PIHAT < 0.1)
+- Spits out core lists for parents and offspring
+
 ## generate-aux.snake
 ### Generates auxilliary files useful for downstream analyses
 ### Rule: extract_info_score

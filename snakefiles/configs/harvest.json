@@ -9,5 +9,8 @@
     "to_imputation_m12_stem": "/mnt/archive/HARVEST/delivery-fhi/data/to_imputation/m12/m12-ready-for-imputation",
     "to_imputation_m24_stem": "/mnt/archive/HARVEST/delivery-fhi/data/to_imputation/m24/m24-ready-for-imputation",
     "flaglist":"/mnt/archive/HARVEST/delivery-fhi/data/aux/flag-list/sample_flag_list-22-05-17.txt",
-	"dbsnp": "/mnt/archive/helgeland/refdata/dbsnp151/All_20180423.vcf.gz"
+	"dbsnp": "/mnt/archive/helgeland/refdata/dbsnp151/All_20180423.vcf.gz",
+    "update_ids":"/mnt/archive/HARVEST/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/harvest-recode-ids-inferped.txt",
+    "update_parents":"/mnt/archive/HARVEST/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/harvest-recode-parents-inferped.txt",
+    "update_sex":"/mnt/archive/HARVEST/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/harvest-recode-sex-inferped.txt"
 }

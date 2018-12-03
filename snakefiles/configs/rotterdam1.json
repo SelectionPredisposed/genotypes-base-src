@@ -5,6 +5,9 @@
     "tmp_path": "/mnt/scratch/helgeland/rotterdam1-base-tmp/",
     "imputed_path": "/mnt/archive/ROTTERDAM1/delivery-fhi/data/imputed/",
     "genotyped_qc_stem": "/mnt/archive/ROTTERDAM1/delivery-fhi/data/genotyped/genotyped",
-    "to_imputation_stem": "",
-	"dbsnp": "/mnt/archive/helgeland/refdata/dbsnp151/All_20180423.vcf.gz"
+    "to_imputation_stem": "/mnt/archive/ROTTERDAM1/delivery-fhi/data/to_phasing/merged/hrc-update-complete-all",
+	"dbsnp": "/mnt/archive/helgeland/refdata/dbsnp151/All_20180423.vcf.gz",
+    "update_ids":"/mnt/archive/ROTTERDAM1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/rot1-recode-ids-inferped.txt",
+    "update_parents":"/mnt/archive/ROTTERDAM1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/rot1-recode-parents-inferped.txt",
+    "update_sex":"/mnt/archive/ROTTERDAM1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/rot1-recode-sex-inferped.txt"
 }

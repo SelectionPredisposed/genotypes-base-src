@@ -1,6 +1,3 @@
-# comment
-#configfile: "config.json"
-
 include: "variables.py"
 
 chrom = list(range(1,23))
@@ -8,10 +5,12 @@ chrom = list(range(1,23))
 rule all:
     input:
         expand(config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order', chr=chromx),
-        #expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
+        expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
         expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx)
 
-# extract lists of all markers with dot-notation in original vcfs
+# Extract lists of all markers with dot-notation in original vcfs (those that came back from imputation server)
+# These markers have been updated with rsIDs from dbSNP. Should not be a problem but
+# tracking these to make sure
 rule get_dot_notation_list:
    input:
        vcf=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz' if config['dataset']=="HARVEST" else config['imputed_path'] + '{chr}.vcf.gz'
@@ -22,7 +21,8 @@ rule get_dot_notation_list:
        zcat {input.vcf} | awk '$0~/^#/{{next}} $3=="." {{print "chr"$1":"$2"_"$4"/"$5}}' > {output.dot_list}
        """
 
-# Extracts marker information from VCF files (performed after updating to dbSNP rsid and unique markers for remainder)
+# Extracts marker information from VCF files (performed after updating to dbSNP rsid and suffixing duplicate rsids)
+# Performed per chr
 rule extract_marker_info:
     input:
         vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz' 
@@ -56,10 +56,9 @@ rule merge_marker_info:
         done
         """
 
-
-
 # Extracts order of samples in the VCF file
-# The sample order is the same for alle files, chr1 used
+# The sample order is the same for all files, chr1 used to fetch list
+# NB: This is not the case for X markers for Harvest that have slightly less samples
 rule extract_sample_order:
     input:
         vcf=config['output_base'] + 'imputed/all/1.vcf.gz'
@@ -69,5 +68,3 @@ rule extract_sample_order:
         """
         bcftools query -l {input.vcf} > {output}
         """
-
-

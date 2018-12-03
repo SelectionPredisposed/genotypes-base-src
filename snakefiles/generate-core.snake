@@ -1,6 +1,9 @@
 # Runtime variables
 include: "variables.py"
 
+# HARVEST: Due to separate QC of MOBA12 and MOBA24 in HARVEST, extra IBD filtering after merge is necessary
+# ROTTERDAM1: Correct IBD filtering is performed during QC
+
 # Catch all rule
 rule all:
     input:
@@ -124,7 +127,8 @@ rule generate_pca_covariates:
     params:
         tmp_path=config['tmp_path'],
         lib_path=libdir,
-        moba_stem=config['output_base'] + '/genotyped/merged/moba-qc-merge'
+        moba_stem=config['output_base'] + '/genotyped/merged/moba-qc-merge',
+        pcacovar=config['output_base'] + 'core/pca/pca-{role}'
     shell:
         """
         # Generate tmp folder
@@ -157,14 +161,12 @@ rule generate_pca_covariates:
         name=$(echo {output.pcacovar} | sed -e 's/\(.pca.evec\)*$//g')
 
         # Run PCA analysis
-        # 1. Bedset to use for PCA analysis
-        # 2. Output prefix and path for PCA output
-        # 3. Number of PCAs to calculate
-        # 4. Plot in function
-        # 5. tmp folder
-        pca {params.tmp_path}/core/pca/moba-all-pruned $name 10 "NO" $tmp
+        # 1. Input bedset (needs to be pre-pruned)
+        # 2. Output path + prefix of PCA output
+        # 3. TMP folder
+        pca {params.tmp_path}/core/pca/moba-all-pruned {params.pcacovar} $tmp
 
-        tail -n+2 {output.pcacovar} | tr ':' ' ' | tr -s ' ' ' ' | cut -f2-12 -d' ' > {output.pcacovar}.formatted
+        #tail -n+2 {output.pcacovar} | tr ':' ' ' | tr -s ' ' ' ' | cut -f2-12 -d' ' > {output.pcacovar}.formatted
 
         """
 
