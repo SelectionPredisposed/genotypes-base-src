@@ -6,6 +6,7 @@
 
 ### snakemake_workflows initialization ########################################
 libdir = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'lib'))
+tmpdir = config['tmp_path']
 resourcesdir = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'resources'))
 bcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'software/bcftools-1.7/bcftools'))
 vcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'software/vcftools-0.1.13/vcftools'))

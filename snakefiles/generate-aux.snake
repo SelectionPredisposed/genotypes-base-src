@@ -1,12 +1,15 @@
+import os
+
 include: "variables.py"
 
 chrom = list(range(1,23))
 
 rule all:
     input:
-        expand(config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order', chr=chromx),
-        expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
-        expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx)
+        #expand(config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order', chr=chromx),
+        #expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
+        #expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx),
+        os.path.join(config['output_base'], 'pca', 'harvestpca.pca.evec')
 
 # Extract lists of all markers with dot-notation in original vcfs (those that came back from imputation server)
 # These markers have been updated with rsIDs from dbSNP. Should not be a problem but
@@ -67,4 +70,39 @@ rule extract_sample_order:
     shell:
         """
         bcftools query -l {input.vcf} > {output}
+        """
+
+# Generates LMM core for HARVEST as this was not done during QC (as in Rot1 onwards)
+rule generate_lmm_core:
+    input:
+        geno=expand(os.path.join(config['output_base'], 'genotyped', 'merged', 'moba-qc-merge.{ext}'), ext=['bed','bim','fam'])
+    output:
+        pca=os.path.join(config['output_base'], 'pca', 'harvestpca.pca.evec')
+    params:
+        genostem=os.path.join(config['output_base'], 'genotyped', 'merged', 'moba-qc-merge'),
+        pcastem=os.path.join(config['output_base'], 'pca', 'harvestpca') 
+    shell:
+        """
+        # create convertf param file
+        source {libdir}/pca_functions.sh
+        
+        plink \
+            --bfile {params.genostem} \
+            --autosome \
+            --make-founders \
+            --indep-pairwise 200 100 0.2 \
+            --out {tmpdir}/prune_markers_tmp
+
+
+        plink \
+            --bfile {params.genostem} \
+            --extract {tmpdir}/prune_markers_tmp.prune.in \
+            --make-bed \
+            --out {tmpdir}/genotyped_pruned
+
+        pca \
+            {tmpdir}/genotyped_pruned \
+            {params.pcastem} \
+            {tmpdir}
+
         """

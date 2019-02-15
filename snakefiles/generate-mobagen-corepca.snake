@@ -3,7 +3,10 @@ include: "variables.py"
 
 rule all:
     input:
-        config['output_base'] + 'genotyped/test/done.txt'
+        config['output_base'] + 'genotyped/test/done.txt',
+        os.path.join(config['output_base'], 'pca', 'mobagenetics.pca.evec'),
+        # prune mobagen:
+        outpruned=expand(os.path.join(tmpdir, 'pruned', 'mobagen-pruned.{ext}'), ext=['bed','bim','fam'])
         #expand(config['output_base'] + 'genotyped/genotyped' + '{ext}', ext=['.bed','.bim','.fam'])
 
 # merge non-imputed QC'ed HARVEST and ROT1
@@ -112,3 +115,93 @@ rule check_ibd:
             --out {params.ibd_all}
         """
 
+# Prune MOBAGENETICS
+rule prune_mobagen:
+    input:
+        geno=expand(os.path.join(config['output_base'], 'genotyped', 'allbatch_genotyped', 'merged', 'autosomes.{ext}'), ext=['bed','bim','fam'])
+    output:
+        outpruned=expand(os.path.join(tmpdir, 'pruned', 'mobagen-pruned.{ext}'), ext=['bed','bim','fam'])
+    params:
+        genostem=os.path.join(config['output_base'], 'genotyped', 'allbatch_genotyped', 'merged', 'autosomes'),
+        outprunedstem=os.path.join(tmpdir, 'pruned', 'mobagen-pruned')
+    shell:
+        """
+        # Prune 
+        plink \
+            --bfile {params.genostem} \
+            --autosome \
+            --make-founders \
+            --maf 0.05 \
+            --indep-pairwise 200 100 0.2 \
+            --out {tmpdir}/pruned/prune_markers_tmp
+
+        plink \
+            --bfile {params.genostem} \
+            --extract {tmpdir}/pruned/prune_markers_tmp.prune.in \
+            --make-bed \
+            --out {params.outprunedstem}
+        """
+
+# Generate PCAs for the all MOBAGENETICS samples
+# TODO: Remove pruning and use the results from above
+rule pca_all:
+    input:
+        geno=expand(os.path.join(config['output_base'], 'genotyped', 'allbatch_genotyped', 'merged', 'autosomes.{ext}'), ext=['bed','bim','fam'])
+    output:
+        pca=os.path.join(config['output_base'], 'pca', 'mobagenetics.pca.evec')
+    params:
+        genostem=os.path.join(config['output_base'], 'genotyped', 'allbatch_genotyped', 'merged', 'autosomes'),
+        pcastem=os.path.join(config['output_base'], 'pca', 'mobagenetics') 
+    shell:
+        """
+        # create convertf param file
+        source {libdir}/pca_functions.sh
+        
+        plink \
+            --bfile {params.genostem} \
+            --autosome \
+            --make-founders \
+            --maf 0.05 \
+            --indep-pairwise 200 100 0.2 \
+            --out {tmpdir}/prune_markers_tmp
+
+        plink \
+            --bfile {params.genostem} \
+            --extract {tmpdir}/prune_markers_tmp.prune.in \
+            --make-bed \
+            --out {tmpdir}/genotyped_pruned
+
+        pca \
+            {tmpdir}/genotyped_pruned \
+            {params.pcastem} \
+            {tmpdir}
+
+        """
+
+# Generate PCAs for total MOBAGENETICS with HapMap anchor population
+rule pca_all_hapmap:
+    input:
+        mobagen_pruned=expand(os.path.join(tmpdir, 'pruned', 'mobagen-pruned.{ext}'), ext=['bed','bim','fam']),
+        hapmap=expand(config['hapmap_stem'] + '.{ext}', ext=['bed','bim','fam'])
+    output:
+        pca=os.path.join(config['output_base'], 'pca', 'mobagenetics_hapmap.pca.evec')
+    params:
+        mobagen_pruned_stem=os.path.join(tmpdir, 'pruned', 'mobagen-pruned'),
+        hapmap_stem=config['hapmap_stem'],
+        pcastem=os.path.join(config['output_base'], 'pca', 'mobagenetics_hapmap')
+    shell:
+        """ 
+        # create convertf param file
+        source {libdir}/pca_functions.sh
+        
+        # Input stem of bedset (pruned)
+        # Input stem of hapmap
+        # Output path + stem of PCA results
+        # TMP-folder
+        pca_with_hapmap \
+            {params.mobagen_pruned_stem} \
+            {params.hapmap_stem} \
+            {params.pcastem} \
+            {tmpdir}
+        
+        """

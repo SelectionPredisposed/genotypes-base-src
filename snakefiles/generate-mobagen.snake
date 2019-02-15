@@ -3,27 +3,65 @@ include: "variables.py"
 
 rule all:
     input:
-        expand(config['output_base'] + 'imputed/all/{chr}.vcf.gz', chr=chromx),
-        expand(config['output_base'] + 'imputed/all/{chr}.vcf.gz.tbi', chr=chromx),
+        #expand(config['output_base'] + 'imputed/all/{chr}.vcf.gz', chr=chromx),
+        #expand(config['output_base'] + 'imputed/all/{chr}.vcf.gz.tbi', chr=chromx),
         expand(config['output_base'] + 'genotyped/allbatch_genotyped/{chr}.vcf.gz', chr=chromx),
         expand(config['output_base'] + 'genotyped/allbatch_genotyped/merged/autosomes.{ext}', ext=['bed','bim','fam']),
         expand(config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{chr}.{ext}', chr=chrom, ext=['bed','bim','fam']),
-        expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam'])
+        expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam']),
+        expand(os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.bgen'), chr=chromx),
+        expand(os.path.join(config['output_base'], 'imputed', 'all', 'dosage', '{chr}.dosage.gz'), chr=chromx),
+        expand(os.path.join(config['output_base'], 'imputed', 'all', 'dosage', '{chr}.sample'), chr=chromx)
 
 # merge full imputed VCFs: HARVEST with ROT1
-rule merge_vcf:
+#rule merge_vcf:
+    #input:
+        #harvest=config['harvest_base_imputed'] + "{chr}.vcf.gz",
+        #rot1=config['rot1_base_imputed'] + "{chr}.vcf.gz"
+    #output:
+        #vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz',
+        #tbi=config['output_base'] + 'imputed/all/{chr}.vcf.gz.tbi'
+    #params:
+        #bcftools=bcftools
+    #shell:
+        #"""
+        #{params.bcftools} merge --info-rules INFO:avg -o {output.vcf} -Oz {input.harvest} {input.rot1}
+        #tabix -f {output.vcf}
+        #"""
+
+# Convert vcf to dosage (BOLT-LMM format)
+rule vcf_to_dosage:
     input:
-        harvest=config['harvest_base_imputed'] + "{chr}.vcf.gz",
-        rot1=config['rot1_base_imputed'] + "{chr}.vcf.gz"
+        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz'
     output:
-        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz',
-        tbi=config['output_base'] + 'imputed/all/{chr}.vcf.gz.tbi'
+        sample=os.path.join(config['output_base'], 'imputed', 'all', 'dosage', '{chr}.sample'),
+        dosage=os.path.join(config['output_base'], 'imputed', 'all', 'dosage', '{chr}.dosage.gz')
     params:
-        bcftools=bcftools
     shell:
         """
-        {params.bcftools} merge --info-rules INFO:avg -o {output.vcf} -Oz {input.harvest} {input.rot1}
-        tabix -f {output.vcf}
+        # Convert VCF to gzipped dosage format compatible with BOLT-LMM
+        bcftools query -f '%ID %CHROM %POS %ALT %REF [ %DS ]' {input.vcf} | gzip > {output.dosage}
+        
+        # Output corresponding sample file
+        bcftools query -l {input.vcf} > {output.sample}
+        """
+
+# convert VCF to bgen
+rule vcf_to_bgen:
+    input:
+        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz'
+    output:
+        bgen=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.bgen')
+    params:
+        bgen=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}')
+    shell:
+        """
+        plink2 \
+            --vcf {input.vcf} dosage=DS \
+            --export bgen-1.2 id-delim=" " \
+            --double-id \
+            --out {params.bgen} || true
+
         """
 
 # merge common bedset: HARVEST with ROT1
