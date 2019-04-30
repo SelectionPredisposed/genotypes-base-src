@@ -10,8 +10,7 @@ rule all:
         expand(config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{chr}.{ext}', chr=chrom, ext=['bed','bim','fam']),
         expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam']),
         expand(os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.bgen'), chr=chromx),
-        expand(os.path.join(config['output_base'], 'imputed', 'all', 'dosage', '{chr}.dosage.gz'), chr=chromx),
-        expand(os.path.join(config['output_base'], 'imputed', 'all', 'dosage', '{chr}.sample'), chr=chromx)
+        expand(os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.sample'), chr=chromx)
 
 # merge full imputed VCFs: HARVEST with ROT1
 #rule merge_vcf:
@@ -29,6 +28,40 @@ rule all:
         #tabix -f {output.vcf}
         #"""
 
+# Convert vcf to bgen 1.2
+rule vcf_to_bgen:
+    input:
+        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz'
+    output:
+        bgen=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.bgen'),
+        sample=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.sample')
+    params:
+        tmpsample=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.sample.tmp')
+    shell:
+        """
+        # Print header lines to comply with bgen sample file format
+        echo "ID_1 ID_2 missing sex phenotype" > {output.sample}
+        echo "0 0 0 D B" >> {output.sample}
+
+        # Extract sample list from VCF
+        bcftools query -l {input.vcf} | awk '{{print $1, $1, "0","0","NA"}}' >> {output.sample}
+
+        # Use QCTOOL v2 to convert vcf to bgen
+        # -g input file
+        # -og output bgen file
+        # -bgen-bits BOLT-LMM requires 8 bit encoding
+        # -s input sample file
+        # -os output sample file (generated above in this rule)
+        # -output-sample-format traditional (not used here) specifies traditional saple format (not json)
+        qctool \
+            -g {input.vcf} \
+            -vcf-genotype-field GP \
+            -ofiletype "bgen_v1.2" \
+            -bgen-bits 8 \
+            -s {output.sample} \
+            -og {output.bgen}
+        """
+
 # Convert vcf to dosage (BOLT-LMM format)
 rule vcf_to_dosage:
     input:
@@ -44,24 +77,6 @@ rule vcf_to_dosage:
         
         # Output corresponding sample file
         bcftools query -l {input.vcf} > {output.sample}
-        """
-
-# convert VCF to bgen
-rule vcf_to_bgen:
-    input:
-        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz'
-    output:
-        bgen=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.bgen')
-    params:
-        bgen=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}')
-    shell:
-        """
-        plink2 \
-            --vcf {input.vcf} dosage=DS \
-            --export bgen-1.2 id-delim=" " \
-            --double-id \
-            --out {params.bgen} || true
-
         """
 
 # merge common bedset: HARVEST with ROT1

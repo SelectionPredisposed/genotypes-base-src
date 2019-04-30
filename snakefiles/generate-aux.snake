@@ -6,10 +6,10 @@ chrom = list(range(1,23))
 
 rule all:
     input:
-        #expand(config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order', chr=chromx),
-        #expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
-        #expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx),
-        os.path.join(config['output_base'], 'pca', 'harvestpca.pca.evec')
+        expand(config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order', chr=chromx),
+        expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
+        expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx)
+        #os.path.join(config['output_base'], 'pca', 'harvestpca.pca.evec')
 
 # Extract lists of all markers with dot-notation in original vcfs (those that came back from imputation server)
 # These markers have been updated with rsIDs from dbSNP. Should not be a problem but

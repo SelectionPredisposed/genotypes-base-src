@@ -1,3 +1,5 @@
+import os
+
 # Config file and runtime variables
 include: "variables.py"
 
@@ -44,7 +46,7 @@ rule split_dbsnp:
 rule annotate_missing_rsids:
     input:
         dbsnp=config['tmp_path'] + 'dbsnp/chr{chr}-dbsnp.vcf.gz', 
-        vcf=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz' if config['dataset']=="HARVEST" else config['imputed_path'] + '{chr}.vcf.gz'
+        vcf=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz' if config['dataset']=="HARVEST" else os.path.join(config['imputed_path'], '{chr}.vcf.gz')
     output:
         vcf=config['tmp_path'] + 'imputed/dbsnp-update/{chr}-dbsnp.vcf.gz'
     shell:

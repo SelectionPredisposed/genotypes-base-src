@@ -1,0 +1,13 @@
+{
+    "dataset": "FEB18",
+    "output_base": "/mnt/archive/NORMENT1/genotypes-base/feb18",
+    "flaglist":"/mnt/archive/NORMENT1/delivery-fhi/data/aux/flag-list/feb18/sample_flag_list.txt",
+    "tmp_path": "/mnt/scratch/helgeland/feb18-base-tmp/",
+    "imputed_path": "/mnt/archive/NORMENT1/delivery-fhi/data/imputed/feb18",
+    "genotyped_qc_stem": "/mnt/archive/NORMENT1/delivery-fhi/data/genotyped/genotyped/feb18",
+    "to_imputation_stem": "/mnt/archive/NORMENT1/delivery-fhi/data/to_phasing/feb18/merged/hrc-update-complete",
+	"dbsnp": "/mnt/archive/helgeland/refdata/dbsnp151/All_20180423.vcf.gz",
+    "update_ids":"/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/feb18/feb18-recode-ids-inferped.txt",
+    "update_parents":"/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/feb18/feb18-recode-parents-inferped.txt",
+    "update_sex":"/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/feb18/feb18-recode-sex-inferped.txt"
+}

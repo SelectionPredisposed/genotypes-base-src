@@ -1,0 +1,13 @@
+{
+    "dataset": "ROTTERDAM2",
+    "output_base": "/mnt/archive/ROTTERDAM2/genotypes-base/",
+    "flaglist":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/flag-list/sample_flag_list.txt",
+    "tmp_path": "/mnt/scratch/helgeland/rotterdam2-base-tmp/",
+    "imputed_path": "/mnt/archive/ROTTERDAM2/delivery-fhi/data/imputed/",
+    "genotyped_qc_stem": "/mnt/archive/ROTTERDAM2/delivery-fhi/data/genotyped/genotyped",
+    "to_imputation_stem": "/mnt/archive/ROTTERDAM2/delivery-fhi/data/to_phasing/merged/hrc-update-complete",
+	"dbsnp": "/mnt/archive/helgeland/refdata/dbsnp151/All_20180423.vcf.gz",
+    "update_ids":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/rot2-recode-ids-inferped.txt",
+    "update_parents":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/rot2-recode-parents-inferped.txt",
+    "update_sex":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/rot2-recode-sex-inferped.txt"
+}
