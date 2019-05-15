@@ -1,6 +1,6 @@
 {
     "dataset": "JUN15",
-    "output_base": "/mnt/archive/NORMENT1/genotypes-base/jun15",
+    "output_base": "/mnt/archive/NORMENT1/genotypes-base/jun15/",
     "flaglist":"/mnt/archive/NORMENT1/delivery-fhi/data/aux/flag-list/jun15/sample_flag_list.txt",
     "tmp_path": "/mnt/scratch/helgeland/jun15-base-tmp/",
     "imputed_path": "/mnt/archive/NORMENT1/delivery-fhi/data/imputed/jun15",

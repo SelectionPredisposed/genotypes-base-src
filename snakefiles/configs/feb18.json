@@ -1,6 +1,6 @@
 {
     "dataset": "FEB18",
-    "output_base": "/mnt/archive/NORMENT1/genotypes-base/feb18",
+    "output_base": "/mnt/archive/NORMENT1/genotypes-base/feb18/",
     "flaglist":"/mnt/archive/NORMENT1/delivery-fhi/data/aux/flag-list/feb18/sample_flag_list.txt",
     "tmp_path": "/mnt/scratch/helgeland/feb18-base-tmp/",
     "imputed_path": "/mnt/archive/NORMENT1/delivery-fhi/data/imputed/feb18",
