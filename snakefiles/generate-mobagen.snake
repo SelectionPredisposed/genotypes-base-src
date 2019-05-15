@@ -1,10 +1,12 @@
+import os
+
 # Runtime variables
 include: "variables.py"
 
 rule all:
     input:
-        #expand(config['output_base'] + 'imputed/all/{chr}.vcf.gz', chr=chromx),
-        #expand(config['output_base'] + 'imputed/all/{chr}.vcf.gz.tbi', chr=chromx),
+        expand(config['output_base'] + 'imputed/all/{chr}.vcf.gz', chr=chromx),
+        expand(config['output_base'] + 'imputed/all/{chr}.vcf.gz.tbi', chr=chromx),
         expand(config['output_base'] + 'genotyped/allbatch_genotyped/{chr}.vcf.gz', chr=chromx),
         expand(config['output_base'] + 'genotyped/allbatch_genotyped/merged/autosomes.{ext}', ext=['bed','bim','fam']),
         expand(config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{chr}.{ext}', chr=chrom, ext=['bed','bim','fam']),
@@ -12,21 +14,38 @@ rule all:
         expand(os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.bgen'), chr=chromx),
         expand(os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.sample'), chr=chromx)
 
-# merge full imputed VCFs: HARVEST with ROT1
-#rule merge_vcf:
-    #input:
-        #harvest=config['harvest_base_imputed'] + "{chr}.vcf.gz",
-        #rot1=config['rot1_base_imputed'] + "{chr}.vcf.gz"
-    #output:
-        #vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz',
-        #tbi=config['output_base'] + 'imputed/all/{chr}.vcf.gz.tbi'
-    #params:
-        #bcftools=bcftools
-    #shell:
-        #"""
-        #{params.bcftools} merge --info-rules INFO:avg -o {output.vcf} -Oz {input.harvest} {input.rot1}
-        #tabix -f {output.vcf}
-        #"""
+# merge full imputed VCFs: HARVEST, ROT1, ROT2, TED, NORMENT1 (FEB18, MAY16, JAN15, JUN15)
+rule merge_vcf:
+    input:
+        harvest=config['harvest_base_imputed'] + "{chr}.vcf.gz",
+        rot1=config['rot1_base_imputed'] + "{chr}.vcf.gz",
+        rot2=config['rot2_base_imputed'] + "{chr}.vcf.gz",
+        ted=config['ted_base_imputed'] + "{chr}.vcf.gz",
+        feb18=config['feb18_base_imputed'] + "{chr}.vcf.gz",
+        may16=config['may16_base_imputed'] + "{chr}.vcf.gz",
+        jun15=config['jun15_base_imputed'] + "{chr}.vcf.gz",
+        jan15=config['jan15_base_imputed'] + "{chr}.vcf.gz"
+    output:
+        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz',
+        tbi=config['output_base'] + 'imputed/all/{chr}.vcf.gz.tbi'
+    params:
+        bcftools=bcftools,
+        mergefile=os.path.join(tmpdir,'{chr}-mergelist')
+    shell:
+        """
+        # Make mergefile before merging per chromosome
+        echo {input.harvest} > {params.mergefile} 
+        echo {input.rot1} >> {params.mergefile}
+        echo {input.rot2} >> {params.mergefile}
+        echo {input.ted} >> {params.mergefile}
+        echo {input.feb18} >> {params.mergefile}
+        echo {input.may16} >> {params.mergefile}
+        echo {input.jun15} >> {params.mergefile}
+        echo {input.jan15} >> {params.mergefile}
+
+        {params.bcftools} merge --file-list {params.mergefile} --info-rules INFO:avg -o {output.vcf} -Oz
+        tabix -f {output.vcf}
+        """
 
 # Convert vcf to bgen 1.2
 rule vcf_to_bgen:
@@ -53,11 +72,12 @@ rule vcf_to_bgen:
         # -s input sample file
         # -os output sample file (generated above in this rule)
         # -output-sample-format traditional (not used here) specifies traditional saple format (not json)
-        qctool \
+        /home/oyvindhe/downloads/software/qctool-v2-src/qctool/build/default/qctool_v2.0.4 \
             -g {input.vcf} \
             -vcf-genotype-field GP \
             -ofiletype "bgen_v1.2" \
             -bgen-bits 8 \
+            -threads 20 \
             -s {output.sample} \
             -og {output.bgen}
         """
