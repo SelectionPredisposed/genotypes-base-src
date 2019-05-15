@@ -7,22 +7,23 @@ chrom = list(range(1,23))
 rule all:
     input:
         expand(config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order', chr=chromx),
-        expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
+ #       expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
         expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx)
         #os.path.join(config['output_base'], 'pca', 'harvestpca.pca.evec')
 
+# TODO : enable and run this during the pipeline as it uses TEMP files
 # Extract lists of all markers with dot-notation in original vcfs (those that came back from imputation server)
 # These markers have been updated with rsIDs from dbSNP. Should not be a problem but
 # tracking these to make sure
-rule get_dot_notation_list:
-   input:
-       vcf=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz' if config['dataset']=="HARVEST" else config['imputed_path'] + '{chr}.vcf.gz'
-   output:
-       dot_list=config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers'
-   shell:
-       """
-       zcat {input.vcf} | awk '$0~/^#/{{next}} $3=="." {{print "chr"$1":"$2"_"$4"/"$5}}' > {output.dot_list}
-       """
+#rule get_dot_notation_list:
+#   input:
+#       vcf=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz' if config['dataset']=="HARVEST" else config['imputed_path'] + '{chr}.vcf.gz'
+#   output:
+#       dot_list=config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers'
+#   shell:
+#       """
+#       zcat {input.vcf} | awk '$0~/^#/{{next}} $3=="." {{print "chr"$1":"$2"_"$4"/"$5}}' > {output.dot_list}
+#       """
 
 # Extracts marker information from VCF files (performed after updating to dbSNP rsid and suffixing duplicate rsids)
 # Performed per chr
