@@ -18,6 +18,7 @@ aux = os.path.join(config['output_base'], 'aux')
 ### workflow settings ##################################
 chrom = list(range(1,23))
 chromx = chrom + ['X']
+chromtemp = list(range(11,23)) + [9] + ['X']
 
 ### generate paths ###################################
 if not os.path.exists(config['output_base']):

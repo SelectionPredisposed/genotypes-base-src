@@ -1,0 +1,30 @@
+import os
+
+# Runtime variables
+include: "variables.py"
+
+rule all:
+    input:
+        expand(config['output_base_tmp'] + 'imputed/all/plink/{chr}.{ext}', ext=['bed','bim','fam'], chr=chromtemp)
+
+
+# Convert VCFs into bedsets
+# Markerinfo files are used to force A1==ALT and A2==REF
+rule imputed_vcf_to_bed:
+    input:
+        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz',
+        markerinfo='/mnt/archive/MOBAGENETICS/genotypes-base/aux/markerinfo/{chr}-markerinfo'
+    output:
+        expand(config['output_base_tmp'] + 'imputed/all/plink/{{chr}}.{ext}', ext=['bed','bim','fam'])
+    params:
+        out_stem=config['output_base_tmp'] + 'imputed/all/plink/{chr}'
+    shell:
+        """
+        plink2 \
+            --vcf {input.vcf} \
+            --a1-allele {input.markerinfo} 5 3 \
+            --double-id \
+            --make-bed \
+            --out {params.out_stem}
+        """
+
