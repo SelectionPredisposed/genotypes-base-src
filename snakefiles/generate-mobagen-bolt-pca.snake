@@ -1,0 +1,183 @@
+import os
+# Runtime variables
+include: "variables.py"
+
+rule all:
+    input:
+        # hapmap_pca
+        os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_pcs'),
+        # extract_hm_markers_mobagen
+        expand(os.path.join(config['tmp_path'], 'pca','mobagen-hapmap-pc-subset.{ext}'), ext=('bed','bim','fam')),
+        # project_pca_mobagen
+        os.path.join(config['tmp_path'],'hm-mobagen-proj-pc')
+        #expand(os.path.join(config['tmp_path'],'pca','mobagen-info-above-98.{ext}'), ext=['bed','bim','fam'])
+
+
+# Generates PCA covariates after merging with HapMap and for all MobaGen samples based PCA core + projection
+
+
+# Perform PCA on Hapmap after subsetting markers. Markers used in markerlist are markers that are both in HapMap and
+# have been genotyped across all 8 batches in mobagen. Rule extracts markers, prunes and performs PCA on hapmap
+# samples only.
+rule hapmap_pca:
+    input:
+        hapmap_bedset=expand(config['hapmap_stem'] + '.{ext}', ext=['bed','bim','fam']),
+        markerlist=os.path.join(resourcesdir, 'marker_chrom_allele_overlap_b36_b37_mobagen_genotyped.txt')
+    output:
+        hm_pcs=os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_pcs'),
+        hm_eigenvec=os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_eigenvec'),
+        hm_loadings=os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_loadings'),
+        hm_eigenval=os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_eigenval'),
+        hm_var_explained=os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_var_explained'),
+        hm_meansd=os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_meansd'),
+    params:
+        tmpdir=config['tmp_path'],
+        hapmap_inbed_stem=config['hapmap_stem']
+    shell:
+        """
+        # Subset markers
+        plink \
+            --bfile {params.hapmap_inbed_stem} \
+            --autosome \
+            --extract {input.markerlist} \
+            --maf 0.01 \
+            --indep-pairwise 100 50 0.1 \
+            --out {tmpdir}/hapmap-marker-extract
+
+        plink \
+            --bfile {params.hapmap_inbed_stem} \
+            --extract {tmpdir}/hapmap-marker-extract.prune.in \
+            --make-bed \
+            --out {tmpdir}/hapmap-pruned
+
+        flashpca_x86-64 \
+            --bfile {tmpdir}/hapmap-pruned \
+            --outpc {output.hm_pcs} \
+            --outvec  {output.hm_eigenvec} \
+            --outload {output.hm_loadings} \
+            --outval {output.hm_eigenval} \
+            --outpve {output.hm_var_explained} \
+            --outmeansd {output.hm_meansd}
+
+        """
+
+# Extract the same markers from mobagen as used in hapmap PC calculation. It is important for flashpca to have
+# the exact same markers and reference alleles when doing the projection. a1-allele is used to align alleles
+# to hapmap.
+rule extract_hm_markers_mobagen:
+    input:
+        bedset=expand('/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink/merged/allchr.{ext}', ext=['bed','bim','fam']),
+        markerlist=os.path.join(config['tmp_path'], 'hapmap-marker-extract.prune.in'),
+        a1ref=os.path.join(config['tmp_path'], 'hapmap-pruned.bim')
+    output:
+        expand(os.path.join(config['tmp_path'],'pca','mobagen-hapmap-pc-subset.{ext}'), ext=['bed','bim','fam'])
+    params:
+        inbed_stem='/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink/merged/allchr',
+        outbed_stem=os.path.join(config['tmp_path'], 'pca', 'mobagen-hapmap-pc-subset')
+    shell:
+        """
+        plink \
+            --bfile {params.inbed_stem} \
+            --extract {input.markerlist} \
+            --a1-allele {input.a1ref} 5 2 \
+            --make-bed \
+            --out {params.outbed_stem}
+        """
+
+# Project mobagen samples on hapmap loadings. Rule will output PCs for mobagen only.
+rule project_pca_mobagen:
+    input:
+        mobagen_inbed=expand(os.path.join(config['tmp_path'],'pca','mobagen-hapmap-pc-subset.{ext}'), ext=['bed','bim','fam']),
+        hm_meansd=os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_meansd'),
+        hm_loadings=os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_loadings')
+    output:
+        projections=os.path.join(config['tmp_path'],'hm-mobagen-proj-pc')
+    params:
+        mobagen_inbed_stem=os.path.join(config['tmp_path'],'pca','mobagen-hapmap-pc-subset')
+    shell:
+        """
+        flashpca_x86-64 \
+            --bfile {params.mobagen_inbed_stem} \
+            --project \
+            --inmeansd {input.hm_meansd} \
+            --inload {input.hm_loadings} \
+            --outproj {output.projections}
+        """
+
+# Merge Hapmap PCA with Mobagen PCA to get both HapMap and Mobagen in single file
+rule merge_pcas:
+    input:
+        hapmap=os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_pcs'),
+        mobagen=os.path.join(config['tmp_path'],'hm-mobagen-proj-pc')
+    output:
+        os.path.join(config['output_base'],'aux','pca', 'hapmap-mobagen', 'hapmap-mobagen-merged-pca')
+    params:
+    shell:
+        """
+        cat {input.hapmap} > {output}
+        tail -n+2 {input.mobagen} >> {output}
+        """
+
+# TODO: extract ethnic core samples
+
+# Subset ethnic core samples and markers with high INFO score (to use for PCA calculation in Mobagen)
+rule subset_mobagen_high_info:
+    input:
+        bedset=expand('/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink/merged/allchr.{ext}', ext=['bed','bim','fam']),
+        markerlist=os.path.join(config['output_base'], 'aux', 'markerinfo', 'markerinfo-inclusion-lists', 'markers-above-info-098'),
+        core_founder_merge='/mnt/archive/HARVEST/genotypes-base-src/resources/core-founders-mobagen-merge-plink'
+    output:
+        expand(os.path.join(config['tmp_path'],'pca','mobagen-info-above-98.{ext}'), ext=['bed','bim','fam']),
+        expand(os.path.join(config['tmp_path'],'pca','mobagen-info-above-98-core.{ext}'), ext=['bed','bim','fam'])
+    params:
+        inbed_stem='/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink/merged/allchr',
+        outbed_stem=os.path.join(config['tmp_path'], 'pca', 'mobagen-info-above-98'),
+        outbed_stem_core=os.path.join(config['tmp_path'], 'pca', 'mobagen-info-above-98-core')
+    shell:
+        """
+        # Extract markers keeping all samples
+        plink2 \
+            --bfile {params.inbed_stem} \
+            --extract {input.markerlist} \
+            --make-bed \
+            --out {params.outbed_stem}
+
+        # Extract samples in merged core
+        plink2 \
+            --bfile {params.outbed_stem} \
+            --extract {input.markerlist} \
+            --keep {input.core_founder_merge} \
+            --make-bed \
+            --out {params.outbed_stem_core}
+
+        """
+
+# Find unrelated samples in ethnic core
+rule get_unrelated_ethnic_core:
+    input:
+       bedset=expand(os.path.join(config['tmp_path'],'pca','mobagen-info-above-98.{ext}'), ext=['bed','bim','fam'])
+    output:
+       os.path.join(config['tmp_path'], 'king_done.txt')
+    params:
+        king_prefix_path=os.path.join(config['tmp_path'])
+    shell:
+        """
+        king -b ex.bed --related --degree 3
+        """
+
+# rule merge_mobagen_hapmap:
+#     input:
+#         hapmap_bedset=expand('/mnt/archive/helgeland/refdata/hapmap/hapmap3_r2_b36.{ext}', ext=['bed','bim','fam'])
+#         mobagen_bedset=expand(os.path.join(config['tmp_path'], 'pca', 'mobagen-hapmap-marker-subset.{ext}'), ext=['bed','bim','fam'])
+#     output:
+#         hapmap_mobagen_merged=expand(os.path.join(config['tmp_path'], 'pca', 'mobagen-hapmap-marker-subset-merged.{ext}'), ext=['bed','bim','fam'])
+#     params:
+#         hapmap_inbed_stem='/mnt/archive/helgeland/refdata/hapmap/hapmap3_r2_b36',
+#         mobagen_inbed_stem=os.path.join(config['tmp_path'], 'pca', 'mobagen-hapmap-marker-subset')
+#     shell:
+#         """
+#         plink \
+#             --bfile {params.mobagen_inbed_stem} \
+#             --bmerge {params.hapmap_inbed_stem} \
+#             -
+#         """

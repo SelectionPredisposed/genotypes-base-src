@@ -9,7 +9,7 @@ rule all:
         os.path.join(config['output_base'], 'aux', 'markerinfo', 'all-markerinfo')
 
 
-# Extract marker information from VCF files on merged
+# Extract marker information from VCF files in MOBAGEN
 # Markers are updated to dbSNP rsid (or epacts if not present in dbSNP) and duplicate rsids are suffixed
 # Important: INFO-scores are averaged
 rule extract_marker_info:
@@ -22,7 +22,7 @@ rule extract_marker_info:
         bcftools query -H -f '%CHROM\t%POS\t%ID\t%REF\t%ALT\t%INFO/TYPED\t%INFO/INFO\t%INFO/RefPanelAF\n' {input.vcf} > {output.markerinfo}
         """
 
-# Merge markerinfo files
+# On merged MOBAGEN: Merge markerinfo files per chromosome into a single file
 rule merge_marker_info:
     input:
         expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx)
@@ -44,3 +44,5 @@ rule merge_marker_info:
             tail -n+2 $i >> {output}
         done
         """
+
+# Generate markerinfo table for all batches.

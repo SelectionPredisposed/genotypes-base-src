@@ -6,10 +6,14 @@ chrom = list(range(1,23))
 
 rule all:
     input:
-        expand(config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order', chr=chromx),
+        #expand(config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order', chr=chromx),
  #       expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
-        expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx)
+        #expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx),
         #os.path.join(config['output_base'], 'pca', 'harvestpca.pca.evec')
+        os.path.join(config['output_base'], 'aux', 'core-founders', 'core-founders-list'),
+        # calculate_maf
+        expand(os.path.join(config['output_base'], 'aux', 'freq','{chr}-freq.gcount'), chr=chrom)
+
 
 # TODO : enable and run this during the pipeline as it uses TEMP files
 # Extract lists of all markers with dot-notation in original vcfs (those that came back from imputation server)
@@ -55,7 +59,7 @@ rule merge_marker_info:
                 head -n1 $i | sed 's/#//' | sed 's/\[[0-9]\]//g' | sed 's/^ //' > {output}
                 HEADER="TRUE"
             fi
-        
+
             tail -n+2 $i >> {output}
         done
         """
@@ -81,12 +85,12 @@ rule generate_lmm_core:
         pca=os.path.join(config['output_base'], 'pca', 'harvestpca.pca.evec')
     params:
         genostem=os.path.join(config['output_base'], 'genotyped', 'merged', 'moba-qc-merge'),
-        pcastem=os.path.join(config['output_base'], 'pca', 'harvestpca') 
+        pcastem=os.path.join(config['output_base'], 'pca', 'harvestpca')
     shell:
         """
         # create convertf param file
         source {libdir}/pca_functions.sh
-        
+
         plink \
             --bfile {params.genostem} \
             --autosome \
@@ -106,4 +110,41 @@ rule generate_lmm_core:
             {params.pcastem} \
             {tmpdir}
 
+        """
+
+# Get list of core founders
+rule extract_core_founders:
+    input:
+        flaglist=config['flaglist']
+    output:
+        core_founders=os.path.join(config['output_base'], 'aux', 'core-founders', 'core-founders-list')
+    params:
+        dataset=config['dataset']
+    shell:
+        """
+        if [ {params.dataset} == "HARVEST" ]
+        then
+            awk '$3=="PARENT" && $20=="TRUE" && $21=="TRUE" {{print $1}}' {input.flaglist} > {output.core_founders}
+        else
+            awk '$16=="FOUNDER" && $12=="TRUE" && $14=="TRUE" {{print $2}}' {input.flaglist} > {output.core_founders}
+        fi
+
+        """
+
+# Calculates MAF per chromosome on imputed VCFs. Filters use founders
+rule calculate_maf:
+    input:
+        vcf=os.path.join(config['output_base'], 'imputed', 'all', '{chr}.vcf.gz'),
+        core_founders=os.path.join(config['output_base'], 'aux', 'core-founders', 'core-founders-list')
+    output:
+        freqfile=os.path.join(config['output_base'], 'aux', 'freq','{chr}-freq.gcount')
+    params:
+        freqfile=os.path.join(config['output_base'], 'aux', 'freq','{chr}-freq'),
+    shell:
+        """
+        plink2 \
+            --vcf {input.vcf} \
+            --keep {input.core_founders} \
+            --geno-counts \
+            --out {params.freqfile}
         """

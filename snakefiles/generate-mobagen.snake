@@ -34,7 +34,7 @@ rule merge_vcf:
     shell:
         """
         # Make mergefile before merging per chromosome
-        echo {input.harvest} > {params.mergefile} 
+        echo {input.harvest} > {params.mergefile}
         echo {input.rot1} >> {params.mergefile}
         echo {input.rot2} >> {params.mergefile}
         echo {input.ted} >> {params.mergefile}
@@ -55,15 +55,28 @@ rule vcf_to_bgen:
         bgen=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.bgen'),
         sample=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.sample')
     params:
-        tmpsample=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.sample.tmp')
+        bgenprefix=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}')
     shell:
         """
         # Print header lines to comply with bgen sample file format
-        echo "ID_1 ID_2 missing sex phenotype" > {output.sample}
-        echo "0 0 0 D B" >> {output.sample}
+        #echo "ID_1 ID_2 missing sex phenotype" > {output.sample}
+        #echo "0 0 0 D B" >> {output.sample}
 
         # Extract sample list from VCF
-        bcftools query -l {input.vcf} | awk '{{print $1, $1, "0","0","NA"}}' >> {output.sample}
+        #bcftools query -l {input.vcf} | awk '{{print $1, $1, "0","0","NA"}}' >> {output.sample}
+
+        plink2 \
+            --vcf {input.vcf} dosage=DS \
+            --make-pgen erase-phase \
+            --threads 30 \
+            --out {tmpdir}/plinkout_unphased{wildcards.chr}
+
+        plink2 \
+            --pfile {tmpdir}/plinkout_unphased{wildcards.chr} \
+            --export bgen-1.2 ref-first bits=8 id-delim='-' \
+            --threads 30 \
+            --out {params.bgenprefix}
+
 
         # Use QCTOOL v2 to convert vcf to bgen
         # -g input file
@@ -72,14 +85,14 @@ rule vcf_to_bgen:
         # -s input sample file
         # -os output sample file (generated above in this rule)
         # -output-sample-format traditional (not used here) specifies traditional saple format (not json)
-        /home/oyvindhe/downloads/software/qctool-v2-src/qctool/build/default/qctool_v2.0.4 \
-            -g {input.vcf} \
-            -vcf-genotype-field GP \
-            -ofiletype "bgen_v1.2" \
-            -bgen-bits 8 \
-            -threads 20 \
-            -s {output.sample} \
-            -og {output.bgen}
+        #/home/oyvindhe/downloads/software/qctool-v2-src/qctool/build/default/qctool_v2.0.4 \
+        #    -g {input.vcf} \
+        #    -vcf-genotype-field GP \
+        #    -ofiletype "bgen_v1.2" \
+        #    -bgen-bits 8 \
+        #    -threads 20 \
+        #    -s {output.sample} \
+        #    -og {output.bgen}
         """
 
 # Convert vcf to dosage (BOLT-LMM format)

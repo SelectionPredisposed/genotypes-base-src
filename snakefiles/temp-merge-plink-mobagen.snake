@@ -5,7 +5,9 @@ include: "variables.py"
 
 rule all:
     input:
-        expand(config['output_base_tmp'] + 'imputed/all/plink/{chr}.{ext}', ext=['bed','bim','fam'], chr=chromtemp)
+        expand(config['output_base_tmp'] + 'imputed/all/plink/{chr}.{ext}', ext=['bed','bim','fam'], chr=chromx),
+        os.path.join(config['output_base'], 'aux', 'recode-files-all-prefullinference', 'mobagen-recode-ids'),
+        os.path.join(config['output_base'], 'aux', 'markerinfo', 'markerinfo-inclusion-lists', 'markers-above-info-09')
 
 
 # Convert VCFs into bedsets
@@ -28,3 +30,131 @@ rule imputed_vcf_to_bed:
             --out {params.out_stem}
         """
 
+# TODO: make sure only sentrixids are preserved for FID and IID before next run.
+# Alternatively run awk -F'_' '{if (NF > 4) { gsub(/^[^_]*_/,""); print }} {if (NF<4) {print}}' allchr.fam.bak | awk '{print $1,$1,$3,$4,$5,$6}' > allchr.fam
+# is a very messy way to remove the fid_iid mess after merge.
+rule merge_bedfiles:
+    input:
+        expand(config['output_base_tmp'] + 'imputed/all/plink/{chr}.{ext}', chr=chromx, ext=['bed','bim','fam'])
+    output:
+        expand(config['output_base_tmp'] + 'imputed/all/plink/merged/allchr.{ext}', ext=['bed','bim','fam'])
+    params:
+        mergelist=expand(config['output_base_tmp'] + 'imputed/all/plink/{chr}', chr=chromx),
+        outstem=config['output_base_tmp'] + 'imputed/all/plink/merged/allchr'
+    shell:
+        """
+        # Write mergelist file
+        echo {params.mergelist} | tr ' ' '\n' > {tmpdir}/plinkmergelist
+
+        plink \
+            --merge-list {tmpdir}/plinkmergelist \
+            --make-bed \
+            --out {params.outstem}
+
+        # NB: Check output
+        """
+
+# After conversion to bedset pedigree info needs to be updated with info from batches.
+# Since there are overlapping FIDs, a prefix is needed to prefix the recode files
+rule make_mobagen_recodefiles:
+    input:
+        harvest_id="/mnt/archive/HARVEST/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/harvest-recode-ids-inferped.txt",
+        harvest_parents="/mnt/archive/HARVEST/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/harvest-recode-parents-inferped.txt",
+        harvest_sex="/mnt/archive/HARVEST/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/harvest-recode-sex-inferped.txt",
+        rot1_id="/mnt/archive/ROTTERDAM1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/rot1-recode-ids-inferped.txt",
+        rot1_parents="/mnt/archive/ROTTERDAM1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/rot1-recode-parents-inferped.txt",
+        rot1_sex="/mnt/archive/ROTTERDAM1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/rot1-recode-sex-inferped.txt",
+        rot2_id="/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/rot2-recode-ids-inferped.txt",
+        rot2_parents="/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/rot2-recode-parents-inferped.txt",
+        rot2_sex="/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/rot2-recode-sex-inferped.txt",
+        ted_id="/mnt/archive/TED/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/ted-recode-ids-inferped.txt",
+        ted_parents="/mnt/archive/TED/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/ted-recode-parents-inferped.txt",
+        ted_sex="/mnt/archive/TED/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/ted-recode-sex-inferped.txt",
+        feb18_id="/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/feb18/feb18-recode-ids-inferped.txt",
+        feb18_parents="/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/feb18/feb18-recode-parents-inferped.txt",
+        feb18_sex="/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/feb18/feb18-recode-sex-inferped.txt",
+        may16_id="/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/may16/may16-recode-ids-inferped.txt",
+        may16_parents="/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/may16/may16-recode-parents-inferped.txt",
+        may16_sex="/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/may16/may16-recode-sex-inferped.txt",
+        jun15_id="/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/jun15/jun15-recode-ids-inferped.txt",
+        jun15_parents="/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/jun15/jun15-recode-parents-inferped.txt",
+        jun15_sex="/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/jun15/jun15-recode-sex-inferped.txt",
+        jan15_id="/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/jan15/jan15-recode-ids-inferped.txt",
+        jan15_parents="/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/jan15/jan15-recode-parents-inferped.txt",
+        jan15_sex="/mnt/archive/NORMENT1/delivery-fhi/data/aux/recode-files/recode-files-after-inferped/jan15/jan15-recode-sex-inferped.txt"
+    output:
+        recode_id=os.path.join(config['output_base'], 'aux', 'recode-files-all-prefullinference', 'mobagen-recode-ids'),
+        recode_parents=os.path.join(config['output_base'], 'aux', 'recode-files-all-prefullinference', 'mobagen-recode-parents'),
+        recode_sex=os.path.join(config['output_base'], 'aux', 'recode-files-all-prefullinference', 'mobagen-recode-sex')
+    params:
+    shell:
+        """
+        # ADD PREFIX TO FID COLUMN FOR ALL BATCHES IN ID RECODE
+        awk '{{print $1,$2,"HARVEST_"$3,$4}}' {input.harvest_id} > {tmpdir}/harvest-recode-id-mobagen-fixed
+        awk '{{print $1,$2,"ROT1_"$3,$4}}' {input.rot1_id} > {tmpdir}/rot1-recode-id-mobagen-fixed
+        awk '{{print $1,$2,"ROT2_"$3,$4}}' {input.rot2_id} > {tmpdir}/rot2-recode-id-mobagen-fixed
+        awk '{{print $1,$2,"TED_"$3,$4}}' {input.ted_id} > {tmpdir}/ted-recode-id-mobagen-fixed
+        awk '{{print $1,$2,"FEB18_"$3,$4}}' {input.feb18_id} > {tmpdir}/feb18-recode-id-mobagen-fixed
+        awk '{{print $1,$2,"MAY16_"$3,$4}}' {input.may16_id} > {tmpdir}/may16-recode-id-mobagen-fixed
+        awk '{{print $1,$2,"JUN15_"$3,$4}}' {input.jun15_id} > {tmpdir}/jun15-recode-id-mobagen-fixed
+        awk '{{print $1,$2,"JAN15_"$3,$4}}' {input.jan15_id} > {tmpdir}/jan15-recode-id-mobagen-fixed
+
+        # ADD PREFIX TO FID FOR ALL BATCHES IN PARENTS RECODE
+        awk '{{print "HARVEST_"$1,$2,$3,$4}}' {input.harvest_parents} > {tmpdir}/harvest-recode-parents-mobagen-fixed
+        awk '{{print "ROT1_"$1,$2,$3,$4}}' {input.rot1_parents} > {tmpdir}/rot1-recode-parents-mobagen-fixed
+        awk '{{print "ROT2_"$1,$2,$3,$4}}' {input.rot2_parents} > {tmpdir}/rot2-recode-parents-mobagen-fixed
+        awk '{{print "TED_"$1,$2,$3,$4}}' {input.ted_parents} > {tmpdir}/ted-recode-parents-mobagen-fixed
+        awk '{{print "FEB18_"$1,$2,$3,$4}}' {input.feb18_parents} > {tmpdir}/feb18-recode-parents-mobagen-fixed
+        awk '{{print "MAY16_"$1,$2,$3,$4}}' {input.may16_parents} > {tmpdir}/may16-recode-parents-mobagen-fixed
+        awk '{{print "JUN15_"$1,$2,$3,$4}}' {input.jun15_parents} > {tmpdir}/jun15-recode-parents-mobagen-fixed
+        awk '{{print "JAN15_"$1,$2,$3,$4}}' {input.jan15_parents} > {tmpdir}/jan15-recode-parents-mobagen-fixed
+
+        # ADD PREFIX TO FID FOR ALL BATCHES IN SEX RECODE
+        awk '{{print "HARVEST_"$1,$2,$3}}' {input.harvest_sex} > {tmpdir}/harvest-recode-sex-mobagen-fixed
+        awk '{{print "ROT1_"$1,$2,$3}}' {input.rot1_sex} > {tmpdir}/rot1-recode-sex-mobagen-fixed
+        awk '{{print "ROT2_"$1,$2,$3}}' {input.rot2_sex} > {tmpdir}/rot2-recode-sex-mobagen-fixed
+        awk '{{print "TED_"$1,$2,$3}}' {input.ted_sex} > {tmpdir}/ted-recode-sex-mobagen-fixed
+        awk '{{print "FEB18_"$1,$2,$3}}' {input.feb18_sex} > {tmpdir}/feb18-recode-sex-mobagen-fixed
+        awk '{{print "MAY16_"$1,$2,$3}}' {input.may16_sex} > {tmpdir}/may16-recode-sex-mobagen-fixed
+        awk '{{print "JUN15_"$1,$2,$3}}' {input.jun15_sex} > {tmpdir}/jun15-recode-sex-mobagen-fixed
+        awk '{{print "JAN15_"$1,$2,$3}}' {input.jan15_sex} > {tmpdir}/jan15-recode-sex-mobagen-fixed
+
+        # MERGE ALL FILES
+        cat {tmpdir}/*-recode-id-mobagen-fixed > {output.recode_id}
+        cat {tmpdir}/*-recode-parents-mobagen-fixed > {output.recode_parents}
+        cat {tmpdir}/*-recode-sex-mobagen-fixed > {output.recode_sex}
+        """
+
+# For downstream filtering a set of files are generated with various info score thresholds
+rule make_includelists_infoscore:
+    input:
+        allmarkerinfo=os.path.join(config['output_base'], 'aux', 'markerinfo', 'all-markerinfo')
+    output:
+        info_above_098=os.path.join(config['output_base'], 'aux', 'markerinfo', 'markerinfo-inclusion-lists', 'markers-above-info-098'),
+        info_above_09=os.path.join(config['output_base'], 'aux', 'markerinfo', 'markerinfo-inclusion-lists', 'markers-above-info-09'),
+        info_above_07=os.path.join(config['output_base'], 'aux', 'markerinfo', 'markerinfo-inclusion-lists', 'markers-above-info-07'),
+        info_above_05=os.path.join(config['output_base'], 'aux', 'markerinfo', 'markerinfo-inclusion-lists', 'markers-above-info-05'),
+        info_above_03=os.path.join(config['output_base'], 'aux', 'markerinfo', 'markerinfo-inclusion-lists', 'markers-above-info-03'),
+        typed_only=os.path.join(config['output_base'], 'aux', 'markerinfo', 'markerinfo-inclusion-lists', 'typed_only')
+    params:
+    shell:
+        """
+        # Get markers with above 0.98
+        awk '$7>0.98 {{print $3}}' {input.allmarkerinfo} > {output.info_above_098}
+ 
+        # Get markers with above 0.9
+        awk '$7>0.9 {{print $3}}' {input.allmarkerinfo} > {output.info_above_09}
+
+        # Get markers with above 0.7
+        awk '$7>0.7 {{print $3}}' {input.allmarkerinfo} > {output.info_above_07}
+
+        # Get markwer with above 0.5
+        awk '$7>0.5 {{print $3}}' {input.allmarkerinfo} > {output.info_above_05}
+
+        # Get markers with above 0.3
+        awk '$7>0.3 {{print $3}}' {input.allmarkerinfo} > {output.info_above_03}
+
+        # Get only markers genotyped in all batches
+        awk '$6==1 && $7==1 {{print $3}}' {input.allmarkerinfo} > {output.typed_only}
+
+        """

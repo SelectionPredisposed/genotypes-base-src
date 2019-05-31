@@ -1,6 +1,7 @@
 {
     "dataset": "MOBAGENETICS",
     "output_base": "/mnt/archive/MOBAGENETICS/genotypes-base/",
+    "output_base_tmp": "/mnt/work/helgeland/MOBAGENETICS/genotypes-base/",
     "tmp_path": "/mnt/scratch/helgeland/mobagenetics-base-tmp/",
     "harvest_base_imputed" : "/mnt/archive/HARVEST/genotypes-base/imputed/all/",
     "rot1_base_imputed" : "/mnt/archive/ROTTERDAM1/genotypes-base/imputed/all/",
@@ -14,6 +15,15 @@
     "rot1_base_genotyped_stem": "/mnt/archive/ROTTERDAM1/delivery-fhi/data/genotyped/genotyped",
     "core_offspring_harvest": "/mnt/archive/helgeland/deliveries/FREATHY_BW_2018/resources/core_offspring_harvest_from_flaglist_n9884",
     "core_offspring_rotterdam1": "/mnt/archive/ROTTERDAM1/genotypes-base/core/core_OFFSPRING",
-    "hapmap_stem":"/mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
+    "hapmap_stem":"/mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36",
+    "harvest_flaglist":"/mnt/archive/HARVEST/delivery-fhi/data/aux/flag-list/sample_flag_list-22-05-17.txt",
+    "rot1_flaglist":"/mnt/archive/ROTTERDAM1/delivery-fhi/data/aux/flag-list/sample_flag_list.txt",
+    "rot2_flaglist":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/flag-list/sample_flag_list.txt",
+    "ted_flaglist":"/mnt/archive/TED/delivery-fhi/data/aux/flag-list/sample_flag_list.txt",
+    "feb18_flaglist":"/mnt/archive/NORMENT1/delivery-fhi/data/aux/flag-list/feb18/sample_flag_list.txt",
+    "may16_flaglist":"/mnt/archive/NORMENT1/delivery-fhi/data/aux/flag-list/may16/sample_flag_list.txt",
+    "jun15_flaglist":"/mnt/archive/NORMENT1/delivery-fhi/data/aux/flag-list/jun15/sample_flag_list.txt",
+    "jan15_flaglist":"/mnt/archive/NORMENT1/delivery-fhi/data/aux/flag-list/jan15/sample_flag_list.txt",
+    "hapmap_stem":"/mnt/archive/helgeland/refdata/hapmap/hapmap3_r2_b36"
 }
 
