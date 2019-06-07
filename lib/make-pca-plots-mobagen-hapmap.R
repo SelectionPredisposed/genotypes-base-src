@@ -40,6 +40,7 @@ output.core.list <- args[5]
 library(tidyr)
 library(ggplot2)
 library(cowplot)
+library(RColorBrewer)
 
 #----------------------------------Script--------------------------------------#
 
@@ -122,7 +123,7 @@ for(i in c('twopc','fourpc')){
 ethnic.core <- subset(m, population=="MOBA" & PC1 > 0.15 & PC1 < 0.3 & PC2 > -0.4 & PC2< -0.19 & PC3 > -0.015 & PC3 < 0.1)
 
 # Mark CORE samples in pca df
-m$CORE <- ifelse(m$IID %in% core.ethnic$IID,1,0)
+m$CORE <- ifelse(m$IID %in% ethnic.core$IID,1,0)
 
 # Change population to CORE in pca df
 m$population <- apply(m, 1, function(x){ ifelse(x['CORE']==1,'CORE',x['population'])})
@@ -193,7 +194,7 @@ for(i in c('twopc.core','fourpc.core')){
 
 # Output list with core ethnic moba samples
 write.table(x = ethnic.core$IID, 
-            file = '/home/oyvind/tmp/ethnic_core', 
+            file = output.core.list, 
             quote = F, 
             row.names = F, 
             col.names = F)
