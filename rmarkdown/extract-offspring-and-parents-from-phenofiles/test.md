@@ -1,24 +1,31 @@
----
-title: "Extract parents and offspring in MobaGen"
-output:
-  github_document:
-    toc: true
-    toc_depth: 2
-  html_document: false
-  pdf_document: false
----
+Extract parents and offspring in MobaGen
+================
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-```{r}
+``` r
 library(data.table)
 library(dplyr)
+```
+
+    ## 
+    ## Attaching package: 'dplyr'
+
+    ## The following objects are masked from 'package:data.table':
+    ## 
+    ##     between, first, last
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     filter, lag
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     intersect, setdiff, setequal, union
+
+``` r
 library(tidyr)
 ```
 
-```{r, message=F}
+``` r
 # Load IDs from phenofile
 if (Sys.info()['nodename'] == "harvest-home-snapshot-2018-07-02") {
   message("SYS IS SERVER")
@@ -28,7 +35,7 @@ if (Sys.info()['nodename'] == "harvest-home-snapshot-2018-07-02") {
 }
 ```
 
-```{r}
+``` r
 #' For a given data frame with multiple non-NA entries per row
 #' selects the first non-NA entry from left to right (first used)
 #' @df data frame with one sample per row
@@ -45,7 +52,7 @@ get.unique.samples <- function(df){
 }
 ```
 
-```{r}
+``` r
 ### CHILDREN ###
 
 # Select children and add counts to find duplicated samples
@@ -61,16 +68,23 @@ all.offspring <- ids %>% select(
 
 # Number of duplicated samples
 table(all.offspring$counts)
+```
 
+    ## 
+    ##     1     2 
+    ## 31134   657
+
+``` r
 # Get the first sentrixID where there are multiple entries (duplicated samples) 
 all.offspring.no.duplicates <- get.unique.samples(all.offspring)
 
 # Print number of unique offspring (NB. Includes all ethnicities)
 length(all.offspring.no.duplicates)
-
 ```
 
-```{r}
+    ## [1] 31791
+
+``` r
 ### MOTHERS
 all.mothers <- ids %>% select(
   mother_Harvest_SentrixID, 
@@ -86,7 +100,13 @@ all.mothers <- ids %>% select(
 
 # Number of duplicated samples
 table(all.mothers$counts)
+```
 
+    ## 
+    ##     1     2     3 
+    ## 30358   872     8
+
+``` r
 # Get the first sentrixID where there are multiple entries (duplicated samples) 
 all.mothers.no.duplicates <- get.unique.samples(all.mothers)
 
@@ -94,7 +114,9 @@ all.mothers.no.duplicates <- get.unique.samples(all.mothers)
 length(all.mothers.no.duplicates)
 ```
 
-```{r}
+    ## [1] 31238
+
+``` r
 ### FATHERS
 all.fathers <- ids %>% select(
   father_Harvest_SentrixID, 
@@ -110,16 +132,23 @@ all.fathers <- ids %>% select(
 
 # Number of duplicated samples
 table(all.fathers$counts)
+```
 
+    ## 
+    ##     1     2     3 
+    ## 28264  1135    11
+
+``` r
 # Get the first sentrixID where there are multiple entries (duplicated samples) 
 all.fathers.no.duplicates <- get.unique.samples(all.fathers)
 
 # Print number of unique offspring (NB. Includes all ethnicities)
 length(all.fathers.no.duplicates)
-
 ```
 
-```{r}
+    ## [1] 29410
+
+``` r
 # TMP: Get placenta pheno
 
 # Load IDs from phenofile
@@ -149,6 +178,10 @@ pheno.out <- merge(delivery.sub, pregnancy.sub, by='sentrix') %>% mutate(FID = s
 
 # Samples in offspring placenta pheno file
 print(nrow(pheno.out))
+```
 
+    ## [1] 31791
+
+``` r
 write.table(pheno.out, file = placenta.file.out, col.names = T, row.names = F, quote = F)
 ```
