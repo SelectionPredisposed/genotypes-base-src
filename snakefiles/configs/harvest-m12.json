@@ -1,6 +1,6 @@
 {
     "dataset": "HARVEST12",
-    "output_base": "/mnt/archive/HARVEST/genotypes-base/harvest12",
+    "output_base": "/mnt/archive/HARVEST/genotypes-base/harvest12/",
     "tmp_path": "/mnt/scratch/helgeland/harvest12-base-tmp/",
     "imputed_path": "/mnt/archive/HARVEST/delivery-fhi/data/imputed/imputed_m12/",
     "genotyped_qc_stem": "/mnt/archive/HARVEST/delivery-fhi/data/genotyped/m12-genotyped",
