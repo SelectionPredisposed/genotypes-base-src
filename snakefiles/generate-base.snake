@@ -6,9 +6,11 @@ include: "variables.py"
 # Catch all rule
 rule all:
     input:
-        expand(config['output_base'] + 'imputed/common/{chr}.vcf.gz', chr=chromx),
-        expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'], chr=chromx),
-        expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'])
+        # generate unique markers
+        expand(os.path.join(config['output_base'], 'imputed', 'all', '{chr}.vcf.gz'), chr=chromx)
+        #expand(config['output_base'] + 'imputed/common/{chr}.vcf.gz', chr=chromx),
+        #expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'], chr=chromx),
+        #expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'])
 
 
 # Merge imputed datasets, (autosomal + X), on a per chromosome basis
@@ -68,79 +70,79 @@ rule generate_unique_markers:
         """
 
 # Extract common markers from VCFs. Here the minimum allele frequency is set to 0.1% for the least frequent allele
-rule extract_common:
-    input:
-        os.path.join(config['output_base'], 'imputed', 'all', '{chr}.vcf.gz')
-    output:
-        os.path.join(config['output_base'], 'imputed', 'common', '{chr}.vcf.gz')
-    shell:
-        """
-        bcftools view -q 0.001:minor {input} -Oz -o {output}
-        tabix -f {output}
-        """
+# rule extract_common:
+#     input:
+#         os.path.join(config['output_base'], 'imputed', 'all', '{chr}.vcf.gz')
+#     output:
+#         os.path.join(config['output_base'], 'imputed', 'common', '{chr}.vcf.gz')
+#     shell:
+#         """
+#         bcftools view -q 0.001:minor {input} -Oz -o {output}
+#         tabix -f {output}
+#         """
 
 # Convert common markerset to PLINK bed format
-rule vcf_to_bed:
-    input:
-        vcf=os.path.join(config['output_base'], 'imputed', 'common', '{chr}.vcf.gz'),
-        update_ids=config['update_ids'],
-        update_parents=config['update_parents'],
-        update_sex=config['update_sex'],
-    output:
-        expand(config['output_base'] + 'imputed/common-bedset/chr/{{chr}}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'])
-    params:
-        output=os.path.join(config['output_base'], 'imputed', 'common-bedset', 'chr', '{chr}-imputed-common'),
-        tmp=config['tmp_path']
-    shell:
-        """
-        # Convert vcf to bed
-        plink \
-            --vcf {input.vcf} \
-            --double-id \
-            --make-bed \
-            --out {params.tmp}/{wildcards.chr}-noinfo
-
-        # Update IDs
-        plink \
-            --bfile {params.tmp}/{wildcards.chr}-noinfo \
-            --update-ids {input.update_ids} \
-            --make-bed \
-            --out {params.tmp}/{wildcards.chr}-id
-
-        # Update parents
-        plink \
-            --bfile {params.tmp}/{wildcards.chr}-id \
-            --update-parents {input.update_parents} \
-            --make-bed \
-            --out {params.tmp}/{wildcards.chr}-id-parents
-
-        # Update sex
-        plink \
-            --bfile {params.tmp}/{wildcards.chr}-id-parents \
-            --update-sex {input.update_sex} \
-            --make-bed \
-            --out {params.output}
-
-        """
+# rule vcf_to_bed:
+#     input:
+#         vcf=os.path.join(config['output_base'], 'imputed', 'common', '{chr}.vcf.gz'),
+#         update_ids=config['update_ids'],
+#         update_parents=config['update_parents'],
+#         update_sex=config['update_sex'],
+#     output:
+#         expand(config['output_base'] + 'imputed/common-bedset/chr/{{chr}}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'])
+#     params:
+#         output=os.path.join(config['output_base'], 'imputed', 'common-bedset', 'chr', '{chr}-imputed-common'),
+#         tmp=config['tmp_path']
+#     shell:
+#         """
+#         # Convert vcf to bed
+#         plink \
+#             --vcf {input.vcf} \
+#             --double-id \
+#             --make-bed \
+#             --out {params.tmp}/{wildcards.chr}-noinfo
+#
+#         # Update IDs
+#         plink \
+#             --bfile {params.tmp}/{wildcards.chr}-noinfo \
+#             --update-ids {input.update_ids} \
+#             --make-bed \
+#             --out {params.tmp}/{wildcards.chr}-id
+#
+#         # Update parents
+#         plink \
+#             --bfile {params.tmp}/{wildcards.chr}-id \
+#             --update-parents {input.update_parents} \
+#             --make-bed \
+#             --out {params.tmp}/{wildcards.chr}-id-parents
+#
+#         # Update sex
+#         plink \
+#             --bfile {params.tmp}/{wildcards.chr}-id-parents \
+#             --update-sex {input.update_sex} \
+#             --make-bed \
+#             --out {params.output}
+#
+#         """
 
 # Merge bedsets per chr into single bedset
-rule merge_bed_chr:
-    input:
-        expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'], chr=chromx)
-    output:
-        lst=os.path.join(config['tmp_path'], 'bedfile_list'),
-        bedset=expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'])
-    params:
-        tmp=config['tmp_path'],
-        filelist=expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common', chr=chromx),
-        bedset=os.path.join(config['output_base'], 'imputed', 'common-bedset', 'merge', 'allchr-imputed-common')
-    shell:
-        """
-        echo {params.filelist} | tr ' ' '\n' > "{params.tmp}/bedfile_list"
-
-        plink \
-            --merge-list {params.tmp}/bedfile_list \
-            --merge-mode 4 \
-            --out {params.bedset}
-        """
+# rule merge_bed_chr:
+#     input:
+#         expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'], chr=chromx)
+#     output:
+#         lst=os.path.join(config['tmp_path'], 'bedfile_list'),
+#         bedset=expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'])
+#     params:
+#         tmp=config['tmp_path'],
+#         filelist=expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common', chr=chromx),
+#         bedset=os.path.join(config['output_base'], 'imputed', 'common-bedset', 'merge', 'allchr-imputed-common')
+#     shell:
+#         """
+#         echo {params.filelist} | tr ' ' '\n' > "{params.tmp}/bedfile_list"
+#
+#         plink \
+#             --merge-list {params.tmp}/bedfile_list \
+#             --merge-mode 4 \
+#             --out {params.bedset}
+#         """
 

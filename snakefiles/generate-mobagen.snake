@@ -5,36 +5,42 @@ include: "variables.py"
 
 rule all:
     input:
-        expand(config['output_base'] + 'imputed/all/{chr}.vcf.gz', chr=chromx),
-        expand(config['output_base'] + 'imputed/all/{chr}.vcf.gz.tbi', chr=chromx),
-        expand(config['output_base'] + 'genotyped/allbatch_genotyped/{chr}.vcf.gz', chr=chromx),
-        expand(config['output_base'] + 'genotyped/allbatch_genotyped/merged/autosomes.{ext}', ext=['bed','bim','fam']),
-        expand(config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{chr}.{ext}', chr=chrom, ext=['bed','bim','fam']),
-        expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam']),
+        # merge_vcf
+        expand(os.path.join(config['output_base'], 'imputed', 'all', 'vcf', '{chr}.vcf.gz'), chr=chromx),
+        expand(os.path.join(config['output_base'], 'imputed', 'all', 'vcf', '{chr}.vcf.gz.tbi'), chr=chromx),
+        # vcf_to_bgen
         expand(os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.bgen'), chr=chromx),
-        expand(os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.sample'), chr=chromx)
+        expand(os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.sample'), chr=chromx),
+        # vcf_to_bed
+        expand(os.path.join(config['output_base'], 'imputed', 'all', 'plink', '{chr}.{ext}'), ext=['bed','bim','fam'], chr=chromx)
+        #expand(config['output_base'] + 'genotyped/allbatch_genotyped/{chr}.vcf.gz', chr=chromx),
+        #expand(config['output_base'] + 'genotyped/allbatch_genotyped/merged/autosomes.{ext}', ext=['bed','bim','fam']),
+        #expand(config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{chr}.{ext}', chr=chrom, ext=['bed','bim','fam']),
+        #expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam']),
 
-# merge full imputed VCFs: HARVEST, ROT1, ROT2, TED, NORMENT1 (FEB18, MAY16, JAN15, JUN15)
+# merge full imputed VCFs: HARVEST12, HARVEST24, ROT1, ROT2, TED, NORMENT1 (FEB18, MAY16, JAN15, JUN15)
 rule merge_vcf:
     input:
-        harvest=config['harvest_base_imputed'] + "{chr}.vcf.gz",
-        rot1=config['rot1_base_imputed'] + "{chr}.vcf.gz",
-        rot2=config['rot2_base_imputed'] + "{chr}.vcf.gz",
-        ted=config['ted_base_imputed'] + "{chr}.vcf.gz",
-        feb18=config['feb18_base_imputed'] + "{chr}.vcf.gz",
-        may16=config['may16_base_imputed'] + "{chr}.vcf.gz",
-        jun15=config['jun15_base_imputed'] + "{chr}.vcf.gz",
-        jan15=config['jan15_base_imputed'] + "{chr}.vcf.gz"
+        harvest12=os.path.join(config['harvest12_base_imputed'], "{chr}.vcf.gz"),
+        harvest24=os.path.join(config['harvest24_base_imputed'], "{chr}.vcf.gz"),
+        rot1=os.path.join(config['rot1_base_imputed'], "{chr}.vcf.gz"),
+        rot2=os.path.join(config['rot2_base_imputed'], "{chr}.vcf.gz"),
+        ted=os.path.join(config['ted_base_imputed'], "{chr}.vcf.gz"),
+        feb18=os.path.join(config['feb18_base_imputed'], "{chr}.vcf.gz"),
+        may16=os.path.join(config['may16_base_imputed'], "{chr}.vcf.gz"),
+        jun15=os.path.join(config['jun15_base_imputed'], "{chr}.vcf.gz"),
+        jan15=os.path.join(config['jan15_base_imputed'], "{chr}.vcf.gz")
     output:
-        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz',
-        tbi=config['output_base'] + 'imputed/all/{chr}.vcf.gz.tbi'
+        vcf=os.path.join(config['output_base'], 'imputed', 'all', 'vcf', '{chr}.vcf.gz'),
+        tbi=os.path.join(config['output_base'], 'imputed', 'all', 'vcf', '{chr}.vcf.gz.tbi')
     params:
         bcftools=bcftools,
         mergefile=os.path.join(tmpdir,'{chr}-mergelist')
     shell:
         """
         # Make mergefile before merging per chromosome
-        echo {input.harvest} > {params.mergefile}
+        echo {input.harvest12} > {params.mergefile}
+        echo {input.harvest24} >> {params.mergefile}
         echo {input.rot1} >> {params.mergefile}
         echo {input.rot2} >> {params.mergefile}
         echo {input.ted} >> {params.mergefile}
@@ -47,109 +53,105 @@ rule merge_vcf:
         tabix -f {output.vcf}
         """
 
-# Convert vcf to bgen 1.2
-rule vcf_to_bgen:
+### Convert vcf to bgen 1.2.
+# First phasing info has to be removed from the vcf. Convert vcf to pgen first, then
+# convert pgen to bgen. vcf_to_pgen needs to be run sequentially.
+rule vcf_to_pgen:
     input:
-        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz'
+        vcf=os.path.join(config['output_base'], 'imputed', 'all', 'vcf', '{chr}.vcf.gz')
     output:
-        bgen=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.bgen'),
-        sample=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.sample')
+        pgen=expand(os.path.join(config['tmp_path'], 'plinkout_unphased{{chr}}.{ext}'), ext=['pgen','psam','pvar'])
+        #bgen=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.bgen'),
+        #sample=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}.sample')
     params:
-        bgenprefix=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}')
+        pgenprefix=os.path.join(config['tmp_path'], 'plinkout_unphased{chr}')
+    threads: 30
     shell:
         """
-        # Print header lines to comply with bgen sample file format
-        #echo "ID_1 ID_2 missing sex phenotype" > {output.sample}
-        #echo "0 0 0 D B" >> {output.sample}
 
-        # Extract sample list from VCF
-        #bcftools query -l {input.vcf} | awk '{{print $1, $1, "0","0","NA"}}' >> {output.sample}
-
+        # Erase phase from VCF before converting to bgen to avoid problems in BOLT-LMM 2.3.2
+        # double-id sets FID to IID when converting to bgen
         plink2 \
             --vcf {input.vcf} dosage=DS \
+            --double-id \
             --make-pgen erase-phase \
-            --threads 30 \
-            --out {tmpdir}/plinkout_unphased{wildcards.chr}
+            --out {params.pgenprefix}
+        """
+
+# Convert unphased to bgen
+rule pgen_to_bgen:
+    input:
+        pgen=expand(os.path.join(config['tmp_path'], 'plinkout_unphased{{chr}}.{ext}'), ext=['pgen','psam','pvar'])
+    output:
+        bgen=expand(os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{{chr}}.{ext}'), ext=['bgen','sample'])
+    params:
+        pgenprefix=os.path.join(config['tmp_path'], 'plinkout_unphased{chr}'),
+        bgenprefix=os.path.join(config['output_base'], 'imputed', 'all', 'bgen', '{chr}')
+    threads: 30
+    shell:
+        """
 
         plink2 \
-            --pfile {tmpdir}/plinkout_unphased{wildcards.chr} \
-            --export bgen-1.2 ref-first bits=8 id-delim='-' \
-            --threads 30 \
+            --pfile {params.pgenprefix} \
+            --export bgen-1.2 ref-first bits=8 id-paste=iid id-delim='-' \
             --out {params.bgenprefix}
-
-
-        # Use QCTOOL v2 to convert vcf to bgen
-        # -g input file
-        # -og output bgen file
-        # -bgen-bits BOLT-LMM requires 8 bit encoding
-        # -s input sample file
-        # -os output sample file (generated above in this rule)
-        # -output-sample-format traditional (not used here) specifies traditional saple format (not json)
-        #/home/oyvindhe/downloads/software/qctool-v2-src/qctool/build/default/qctool_v2.0.4 \
-        #    -g {input.vcf} \
-        #    -vcf-genotype-field GP \
-        #    -ofiletype "bgen_v1.2" \
-        #    -bgen-bits 8 \
-        #    -threads 20 \
-        #    -s {output.sample} \
-        #    -og {output.bgen}
         """
 
 # Convert vcf to dosage (BOLT-LMM format)
-rule vcf_to_dosage:
-    input:
-        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz'
-    output:
-        sample=os.path.join(config['output_base'], 'imputed', 'all', 'dosage', '{chr}.sample'),
-        dosage=os.path.join(config['output_base'], 'imputed', 'all', 'dosage', '{chr}.dosage.gz')
-    params:
-    shell:
-        """
-        # Convert VCF to gzipped dosage format compatible with BOLT-LMM
-        bcftools query -f '%ID %CHROM %POS %ALT %REF [ %DS ]' {input.vcf} | gzip > {output.dosage}
-        
-        # Output corresponding sample file
-        bcftools query -l {input.vcf} > {output.sample}
-        """
+# rule vcf_to_dosage:
+#     input:
+#         vcf=os.path.join(config['output_base'], 'imputed', 'all' , '{chr}.vcf.gz')
+#     output:
+#         sample=os.path.join(config['output_base'], 'imputed', 'all', 'dosage', '{chr}.sample'),
+#         dosage=os.path.join(config['output_base'], 'imputed', 'all', 'dosage', '{chr}.dosage.gz')
+#     params:
+#     shell:
+#         """
+#         # Convert VCF to gzipped dosage format compatible with BOLT-LMM
+#         bcftools query -f '%ID %CHROM %POS %ALT %REF [ %DS ]' {input.vcf} | gzip > {output.dosage}
+#
+#         # Output corresponding sample file
+#         bcftools query -l {input.vcf} > {output.sample}
+#         """
 
 # merge common bedset: HARVEST with ROT1
-rule merge_common_bedset:
-    input:
-        harvest=expand('/mnt/archive/HARVEST/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam']),
-        rot1=expand('/mnt/archive/ROTTERDAM1/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam'])
-    output:
-        outbed=expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam'])
-    params:
-        inharvest='/mnt/archive/HARVEST/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common',
-        inrot1='/mnt/archive/ROTTERDAM1/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common',
-        outbed=config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common',
-        tmp=config['tmp_path']
-    shell:
-        """
-        plink \
-            --bfile {params.inharvest} \
-            --bmerge {params.inrot1} \
-            --merge-mode 4 \
-            --out {params.tmp}triallelic || true
-
-        plink \
-            --bfile {params.inharvest} \
-            --exclude {params.tmp}triallelic.missnp \
-            --make-bed \
-            --out {params.tmp}harvest_biallelic_only
-
-        plink \
-            --bfile {params.inrot1} \
-            --exclude {params.tmp}triallelic.missnp \
-            --make-bed \
-            --out {params.tmp}rot1_biallelic_only
-        
-        plink \
-            --bfile {params.tmp}harvest_biallelic_only \
-            --bmerge {params.tmp}rot1_biallelic_only \
-            --merge-mode 4 \
-            --out {params.outbed}
-        """
+# rule merge_common_bedset:
+#     input:
+#         harvest=expand('/mnt/archive/HARVEST/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam']),
+#         rot1=expand('/mnt/archive/ROTTERDAM1/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam'])
+#     output:
+#         outbed=expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common.{ext}', ext=['bed','bim','fam'])
+#     params:
+#         inharvest='/mnt/archive/HARVEST/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common',
+#         inrot1='/mnt/archive/ROTTERDAM1/genotypes-base/imputed/common-bedset/merge/allchr-imputed-common',
+#         outbed=config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common',
+#         tmp=config['tmp_path']
+#     shell:
+#         """
+#         plink \
+#             --bfile {params.inharvest} \
+#             --bmerge {params.inrot1} \
+#             --merge-mode 4 \
+#             --out {params.tmp}triallelic || true
+#
+#         plink \
+#             --bfile {params.inharvest} \
+#             --exclude {params.tmp}triallelic.missnp \
+#             --make-bed \
+#             --out {params.tmp}harvest_biallelic_only
+#
+#         plink \
+#             --bfile {params.inrot1} \
+#             --exclude {params.tmp}triallelic.missnp \
+#             --make-bed \
+#             --out {params.tmp}rot1_biallelic_only
+#         
+#         plink \
+#             --bfile {params.tmp}harvest_biallelic_only \
+#             --bmerge {params.tmp}rot1_biallelic_only \
+#             --merge-mode 4 \
+#             --out {params.outbed}
+#         """
 
 
 # remove samples with too high IBD across batches
@@ -185,17 +187,17 @@ rule filter_genotyped:
 
         # Filter markers with TYPED & INFO=1 in INFO field
         zcat {input.vcf} | grep -v "^#" | grep "TYPED" | gzip >> {output.vcf}
-        
+
         """
 
-# Convert VCFs into bedsets
+# Convert full VCF to bedsets
 rule vcf_to_bed:
     input:
-        vcf=config['output_base'] + 'genotyped/allbatch_genotyped/{chr}.vcf.gz'
+        vcf=os.path.join(config['output_base'], 'imputed', 'all', 'vcf', '{chr}.vcf.gz')
     output:
-        expand(config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{{chr}}.{ext}', ext=['bed','bim','fam'])
+        expand(os.path.join(config['output_base'], 'imputed', 'all', 'plink', '{{chr}}.{ext}'), ext=['bed','bim','fam'])
     params:
-        out_stem=config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{chr}'
+        out_stem=os.path.join(config['output_base'], 'imputed', 'all', 'plink', '{chr}')
     shell:
         """
         plink \
@@ -208,11 +210,11 @@ rule vcf_to_bed:
 # generate filelist before merging bedsets
 rule generate_merge_filelist:
     input:
-        expand(config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{chr}.{ext}', chr=chrom, ext=['bed','bim','fam'])
+        expand(os.path.join(config['output_base'], 'imputed', 'all', 'plink', '{chr}.{ext}'), chr=chromx, ext=['bed','bim','fam'])
     output:
-        config['tmp_path']  + 'filelist_merge'
+        os.path.join(config['tmp_path'], 'filelist_merge')
     params:
-        expand(config['output_base'] + 'genotyped/allbatch_genotyped/bedset/{chr}', chr=chrom)
+        expand(os.path.join(config['output_base'], 'imputed', 'all', 'plink', '{chr}'), chr=chromx)
     run:
 
         f = open(output[0], 'w')
@@ -223,11 +225,15 @@ rule generate_merge_filelist:
 # merge filtered vcfs
 rule merge_bedsets:
     input:
-        config['tmp_path'] + 'filelist_merge'
+        os.path.join(config['tmp_path'], 'filelist_merge')
     output:
-        expand(config['output_base'] + 'genotyped/allbatch_genotyped/merged/autosomes.{ext}', ext=['bed','bim','fam'])
+        #expand(os.path.join(config['output_base'], 'imputed', 'all', 'plink', 'mobagen.{ext}'), ext=['bed','bim','fam'])
+        # temp folder due to disk space
+        expand('/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink-merge/mobagen.{ext}', ext=['bed','bim','fam'])
     params:
-        outstem=config['output_base'] + 'genotyped/allbatch_genotyped/merged/autosomes'
+        #outstem=os.path.join(config['output_base'], 'imputed', 'all', 'plink', 'mobagen')
+        # temp due to disk space
+        outstem='/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink-merge/mobagen'
     shell:
         """
         plink --merge-list {input} --merge-mode 4 --out {params.outstem}

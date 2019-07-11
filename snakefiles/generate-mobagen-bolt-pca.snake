@@ -4,7 +4,7 @@ include: "variables.py"
 
 
 ### OUTLINE ###
-# Workflow calculates PCAs on HapMap samples before projecting all MobaGen samples onto the loadings. 
+# Workflow calculates PCAs on HapMap samples before projecting all MobaGen samples onto the loadings.
 # generates PCA covariates after merging with HapMap and for all MobaGen samples based PCA core + projection
 
 rule all:
@@ -15,12 +15,26 @@ rule all:
         expand(os.path.join(config['tmp_path'], 'pca','mobagen-hapmap-pc-subset.{ext}'), ext=('bed','bim','fam')),
         # project_pca_mobagen
         os.path.join(config['tmp_path'],'hm-mobagen-proj-pc'),
+        # merge_pcas
+        os.path.join(config['output_base'],'aux','pca', 'hapmap-mobagen', 'hapmap-mobagen-merged-pca'),
         # extract ethnic core
         os.path.join(config['output_base'], 'aux', 'pca', 'ethnic-core-samples'),
         # subset_ethnic_core_high_info
-        expand(os.path.join(config['tmp_path'],'pca','mobagen-info-above-98.{ext}'), ext=['bed','bim','fam'])
-
-
+        expand(os.path.join(config['tmp_path'],'pca','mobagen-high-info-core.{ext}'), ext=['bed','bim','fam']),
+        # get_unrelated_ethnic_core
+        os.path.join(config['output_base'], 'aux', 'pedigree', 'mobagen-ethnic-core-samples.kin0'),
+        # generate_unrelated_ethnic_core
+        os.path.join(config['output_base'], 'aux', 'pca', 'mobagen-ethnic-core-related'),
+        os.path.join(config['output_base'], 'aux', 'pca', 'mobagen-ethnic-core-unrelated'),
+        expand(os.path.join(config['tmp_path'],'pca','unrelated-ethnic-core.{ext}'), ext=['bed','bim','fam']),
+        # generate_pca_ethnic_core
+        os.path.join(config['output_base'], 'aux', 'pca', 'mobagen-ethnic-core', 'mobagen_loadings'),
+        # project_mobagen_on_unrelated_ethnic_core
+        os.path.join(config['output_base'], 'aux', 'pca', 'mobagen-total', 'mobagen-total-proj-pc'),
+        # extract_grm_bolt
+        expand(os.path.join(config['tmp_path'],'bolt','grm-high-quality.{ext}'), ext=['bed','bim','fam']),
+        # prune_grm_bolt
+        expand(os.path.join(config['tmp_path'],'bolt','grm-high-quality-pruned.{ext}'), ext=['bed','bim','fam'])
 
 
 # Perform PCA on Hapmap after subsetting markers. Markers used in the markerlist are markers that are both in HapMap and
@@ -37,6 +51,8 @@ rule hapmap_pca:
         hm_eigenval=os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_eigenval'),
         hm_var_explained=os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_var_explained'),
         hm_meansd=os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_meansd'),
+        markerlist=os.path.join(config['tmp_path'], 'hapmap-marker-extract.prune.in'),
+        a1ref=os.path.join(config['tmp_path'], 'hapmap-pruned.bim')
     params:
         tmpdir=config['tmp_path'],
         hapmap_inbed_stem=config['hapmap_stem']
@@ -71,16 +87,16 @@ rule hapmap_pca:
 # Extract the same markers from mobagen as used in hapmap PC calculation. It is important for flashpca to have
 # the exact same markers and reference alleles when doing the projection. --a1-allele is used to align alleles
 # to match hapmap bedset.
-# TODO: Move allchr to /mnt/archive and include X
+# TODO: Move mobagen to correct location when enough space
 rule extract_hm_markers_mobagen:
     input:
-        bedset=expand('/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink/merged/allchr.{ext}', ext=['bed','bim','fam']),
+        bedset=expand('/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink-merge/mobagen.{ext}', ext=['bed','bim','fam']),
         markerlist=os.path.join(config['tmp_path'], 'hapmap-marker-extract.prune.in'),
         a1ref=os.path.join(config['tmp_path'], 'hapmap-pruned.bim')
     output:
         expand(os.path.join(config['tmp_path'],'pca','mobagen-hapmap-pc-subset.{ext}'), ext=['bed','bim','fam'])
     params:
-        inbed_stem='/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink/merged/allchr',
+        inbed_stem='/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink-merge/mobagen',
         outbed_stem=os.path.join(config['tmp_path'], 'pca', 'mobagen-hapmap-pc-subset')
     shell:
         """
@@ -126,7 +142,7 @@ rule merge_pcas:
         tail -n+2 {input.mobagen} >> {output}
         """
 
-# For downstream BOLT-LMM analyses an ethnically homogeneous set of samples need to be extracted. Where to 
+# For downstream BOLT-LMM analyses an ethnically homogeneous set of samples need to be extracted. Where to
 # set the thresholds is somewhat arbitrary. Thresholds are hard coded in the workerscript. Associated plots
 # are output post merging with HapMap with and without the ethnic core hihglighted. Note that the ethnic core
 # will contain related samples.
@@ -163,16 +179,14 @@ rule extract_ethnic_core:
 # 3. project all MobaGen samples in ethnic on the loadings generated in step 2)
 rule subset_ethnic_core_high_info:
     input:
-        bedset=expand('/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink/merged/allchr.{ext}', ext=['bed','bim','fam']),
+        bedset=expand('/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink-merge/mobagen.{ext}', ext=['bed','bim','fam']),
         markergz='/mnt/archive/MOBAGENETICS/genotypes-base/aux/markerinfo/all-markerinfo.gz',
         ethnic_core=os.path.join(config['output_base'], 'aux', 'pca', 'ethnic-core-samples')
     output:
-        expand(os.path.join(config['tmp_path'],'pca','mobagen-info-above-98.{ext}'), ext=['bed','bim','fam']),
-        expand(os.path.join(config['tmp_path'],'pca','mobagen-info-above-98-core.{ext}'), ext=['bed','bim','fam'])
+        expand(os.path.join(config['tmp_path'],'pca','mobagen-high-info-core.{ext}'), ext=['bed','bim','fam'])
     params:
-        inbed_stem='/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink/merged/allchr',
-        outbed_stem=os.path.join(config['tmp_path'], 'pca', 'mobagen-info-above-98'),
-        outbed_stem_core=os.path.join(config['tmp_path'], 'pca', 'mobagen-info-above-98-core')
+        inbed_stem='/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink-merge/mobagen',
+        outbed_stem_core=os.path.join(config['tmp_path'], 'pca', 'mobagen-high-info-core')
     shell:
         """
         zcat {input.markergz} | awk '$7 > 0.999 && $8 > 0.01 {{print $3}}' > {tmpdir}/markers
@@ -180,16 +194,9 @@ rule subset_ethnic_core_high_info:
         # Make two column plink extract list
         awk '{{print $1" "$1}}' {input.ethnic_core} > {tmpdir}/ethnic_core_plink
 
-        # Extract markers (keeping all samples) - used in pca projection
-        plink2 \
-            --bfile {params.inbed_stem} \
-            --extract {tmpdir}/markers \
-            --make-bed \
-            --out {params.outbed_stem}
-
         # Extract samples in ethnic core - used to generate pca loadings
         plink2 \
-            --bfile {params.outbed_stem} \
+            --bfile {params.inbed_stem} \
             --extract {tmpdir}/markers \
             --keep {tmpdir}/ethnic_core_plink \
             --make-bed \
@@ -197,14 +204,14 @@ rule subset_ethnic_core_high_info:
 
         """
 
-# Calculate unrelated samples in ethnic core
+# Run pedigree inference in ethnic core to find unrelated samples
 rule get_unrelated_ethnic_core:
     input:
-       bedset=expand(os.path.join(config['tmp_path'],'pca','mobagen-info-above-98-core.{ext}'), ext=['bed','bim','fam'])
+       bedset=expand(os.path.join(config['tmp_path'],'pca','mobagen-high-info-core.{ext}'), ext=['bed','bim','fam'])
     output:
        os.path.join(config['output_base'], 'aux', 'pedigree', 'mobagen-ethnic-core-samples.kin0')
     params:
-        king_bed=os.path.join(config['tmp_path'],'pca','mobagen-info-above-98-core.bed'),
+        king_bed=os.path.join(config['tmp_path'],'pca','mobagen-high-info-core.bed'),
         king_output_prefix=os.path.join(config['output_base'], 'aux', 'pedigree', 'mobagen-ethnic-core-samples')
     shell:
         """
@@ -214,14 +221,14 @@ rule get_unrelated_ethnic_core:
 # Extract unrelated samples in ethnic core
 rule generate_unrelated_ethnic_core:
     input:
-        bedset=expand(os.path.join(config['tmp_path'],'pca','mobagen-info-above-98-core.{ext}'), ext=['bed','bim','fam']),
+        bedset=expand(os.path.join(config['tmp_path'],'pca','mobagen-high-info-core.{ext}'), ext=['bed','bim','fam']),
         kinship=os.path.join(config['output_base'], 'aux', 'pedigree', 'mobagen-ethnic-core-samples.kin0')
     output:
         related_ethnic_core=os.path.join(config['output_base'], 'aux', 'pca', 'mobagen-ethnic-core-related'),
         unrelated_ethnic_core=os.path.join(config['output_base'], 'aux', 'pca', 'mobagen-ethnic-core-unrelated'),
         bedset=expand(os.path.join(config['tmp_path'],'pca','unrelated-ethnic-core.{ext}'), ext=['bed','bim','fam'])
     params:
-        bedstem_in=os.path.join(config['tmp_path'],'pca','mobagen-info-above-98-core'),
+        bedstem_in=os.path.join(config['tmp_path'],'pca','mobagen-high-info-core'),
         bedstem_out=os.path.join(config['tmp_path'],'pca','unrelated-ethnic-core')
     shell:
         """
@@ -242,7 +249,7 @@ rule generate_unrelated_ethnic_core:
 
         """
 
-# Generate PCAs on unrelated ethnic core
+# Calculate PCs in unrelated ethnic core
 rule generate_pca_ethnic_core:
     input:
         expand(os.path.join(config['tmp_path'],'pca','unrelated-ethnic-core.{ext}'), ext=['bed','bim','fam'])
@@ -253,6 +260,7 @@ rule generate_pca_ethnic_core:
         mg_eigenval=os.path.join(config['output_base'], 'aux', 'pca', 'mobagen-ethnic-core', 'mobagen_eigenval'),
         mg_var_explained=os.path.join(config['output_base'], 'aux', 'pca', 'mobagen-ethnic-core', 'mobagen_var_explained'),
         mg_meansd=os.path.join(config['output_base'], 'aux', 'pca', 'mobagen-ethnic-core', 'mobagen_meansd'),
+        pruned_bim=os.path.join(config['tmp_path'], 'unrelated-ethnic-core-pruned.bim')
     params:
         bedstem_in=os.path.join(config['tmp_path'],'pca','unrelated-ethnic-core')
     shell:
@@ -282,17 +290,18 @@ rule generate_pca_ethnic_core:
 
         """
 
-# Project mobagen on unrelated ethnic core
+# Project all samples in mobagen ethnic core on loadings from unrelated ethnic core. This rule generates the PCs
+# for use as covariates in downstream analyses.
 rule project_mobagen_on_unrelated_ethnic_core:
     input:
-        expand(os.path.join(config['tmp_path'],'pca','mobagen-info-above-98.{ext}'), ext=['bed','bim','fam']),
+        expand(os.path.join(config['tmp_path'],'pca','mobagen-high-info-core.{ext}'), ext=['bed','bim','fam']),
         pruned_bim=os.path.join(config['tmp_path'], 'unrelated-ethnic-core-pruned.bim'),
         mg_meansd=os.path.join(config['output_base'], 'aux', 'pca', 'mobagen-ethnic-core', 'mobagen_meansd'),
         mg_loadings=os.path.join(config['output_base'], 'aux', 'pca', 'mobagen-ethnic-core', 'mobagen_loadings')
     output:
-        projections=os.path.join(config['output_base'], 'aux', 'pca' 'mobagen-total', 'mobagen-total-proj-pc')
+        projections=os.path.join(config['output_base'], 'aux', 'pca', 'mobagen-total', 'mobagen-total-proj-pc')
     params:
-        bedstem_in=os.path.join(config['tmp_path'],'pca','mobagen-info-above-98')
+        bedstem_in=os.path.join(config['tmp_path'],'pca','mobagen-high-info-core')
     shell:
         """
         # Extract the same markers for mobagen as remained after pruning unrelated ethnic core
@@ -317,18 +326,15 @@ rule project_mobagen_on_unrelated_ethnic_core:
 
 # BOLT needs a set of high quality markers for generating the GRM. Markers with aggregated INFO score > 0.99 is
 # extracted and pruned in the next rule down to approx 500K markers (as per BOLT docs).
-# NOTE: Only offspring samples are included here to reduce computational overhead in GRM creation. Edit when
-# moving to parents
 rule extract_grm_bolt:
     input:
-        bedset=expand('/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink/merged/allchr.{ext}', ext=['bed','bim','fam']),
+        bedset=expand('/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink-merge/mobagen.{ext}', ext=['bed','bim','fam']),
         markergz='/mnt/archive/MOBAGENETICS/genotypes-base/aux/markerinfo/all-markerinfo.gz',
-        offspring='/mnt/archive/helgeland/tmp/bolt-test/offspring-plink-list',
         ethnic_core=os.path.join(config['output_base'], 'aux', 'pca', 'ethnic-core-samples')
     output:
         expand(os.path.join(config['tmp_path'],'bolt','grm-high-quality.{ext}'), ext=['bed','bim','fam'])
     params:
-        input_stem='/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink/merged/allchr',
+        input_stem='/mnt/work/helgeland/MOBAGENETICS/genotypes-base/imputed/all/plink-merge/mobagen',
         output_stem=os.path.join(config['tmp_path'],'bolt','grm-high-quality')
     shell:
         """
@@ -338,7 +344,6 @@ rule extract_grm_bolt:
         # Extract markers
         plink2 \
             --bfile {params.input_stem} \
-            --keep {input.offspring} \
             --extract {tmpdir}/grm-markers \
             --make-bed \
             --out {params.output_stem}
