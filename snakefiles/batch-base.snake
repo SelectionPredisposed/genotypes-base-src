@@ -1,0 +1,148 @@
+import os
+
+# Config file and runtime variables
+include: "variables.py"
+
+# Catch all rule
+rule all:
+    input:
+        # generate unique markers
+        expand(os.path.join(config['output_base'], 'imputed', 'all', '{chr}.vcf.gz'), chr=chromx)
+        #expand(config['output_base'] + 'imputed/common/{chr}.vcf.gz', chr=chromx),
+        #expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'], chr=chromx),
+        #expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'])
+
+
+# Merge imputed datasets, (autosomal + X), on a per chromosome basis
+# NB: This only performed on HARVEST with two internal batches (moba12 and moba24)
+# if config['dataset']=='HARVEST':
+#     rule merge_imputed:
+#         input:
+#             imp12=config['imputed_m12_path'] + "{chr}.vcf.gz",
+#             imp24=config['imputed_m24_path'] + "{chr}.vcf.gz"
+#         output:
+#             vcf=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz',
+#             tbi=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz.tbi'
+#         params:
+#             bcftools=bcftools
+#         shell:
+#             """
+#             {params.bcftools} merge --info-rules INFO:avg -o {output.vcf} -Oz {input.imp12} {input.imp24}
+#             tabix -f {output.vcf}
+#         """
+
+# To prepare for updating marker names to dbsnp reference, the dbsnp file containing all chr in one file
+# is split into one file per chr to allow for parallel subsequent operations
+rule split_dbsnp:
+    input:
+        dbsnp=config['dbsnp']
+    output:
+        os.path.join(config['tmp_path'], 'dbsnp', 'chr{chr}-dbsnp.vcf.gz')
+    shell:
+        """
+        bcftools view -r {wildcards.chr} {input.dbsnp} -Oz -o {output}
+        tabix -f {output}
+        """
+
+# annotate markers without rsID in imputed dataset to rsid from dbSNP reference
+rule annotate_missing_rsids:
+    input:
+        dbsnp=os.path.join(config['tmp_path'], 'dbsnp', 'chr{chr}-dbsnp.vcf.gz'),
+        vcf=config['tmp_path'] + 'imputed/merged/{chr}-merged.vcf.gz' if config['dataset']=="HARVEST" else os.path.join(config['imputed_path'], '{chr}.vcf.gz')
+    output:
+        vcf=os.path.join(config['tmp_path'], 'imputed', 'dbsnp-update', '{chr}-dbsnp.vcf.gz')
+    shell:
+        """
+        bcftools annotate --annotations {input.dbsnp} --columns ID --output {output.vcf} --output-type z {input.vcf}
+        """
+
+# Converts rsids with dot-notation (no rsID in dbsnp) to format: chr<CHR>:<POSITION>_<REF>/<ALT>
+# and suffixes any duplicate rsids with a number to avoid duplicate rsids
+rule generate_unique_markers:
+    input:
+        os.path.join(config['tmp_path'], 'imputed', 'dbsnp-update', '{chr}-dbsnp.vcf.gz')
+    output:
+        os.path.join(config['output_base'], 'imputed', 'all', '{chr}.vcf.gz')
+    shell:
+        """
+        zcat {input} | awk -v OFS='\t' '$0~/^#/{{print; next}} {{snp[$3]++}} $3=="."{{$3="chr"$1":"$2"_"$4"/"$5}} snp[$3]>1 {{$3=$3"_"snp[$3]}} {{print}}' | bgzip > {output}
+        tabix -f {output}
+        """
+
+# Extract common markers from VCFs. Here the minimum allele frequency is set to 0.1% for the least frequent allele
+# rule extract_common:
+#     input:
+#         os.path.join(config['output_base'], 'imputed', 'all', '{chr}.vcf.gz')
+#     output:
+#         os.path.join(config['output_base'], 'imputed', 'common', '{chr}.vcf.gz')
+#     shell:
+#         """
+#         bcftools view -q 0.001:minor {input} -Oz -o {output}
+#         tabix -f {output}
+#         """
+
+# Convert common markerset to PLINK bed format
+# rule vcf_to_bed:
+#     input:
+#         vcf=os.path.join(config['output_base'], 'imputed', 'common', '{chr}.vcf.gz'),
+#         update_ids=config['update_ids'],
+#         update_parents=config['update_parents'],
+#         update_sex=config['update_sex'],
+#     output:
+#         expand(config['output_base'] + 'imputed/common-bedset/chr/{{chr}}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'])
+#     params:
+#         output=os.path.join(config['output_base'], 'imputed', 'common-bedset', 'chr', '{chr}-imputed-common'),
+#         tmp=config['tmp_path']
+#     shell:
+#         """
+#         # Convert vcf to bed
+#         plink \
+#             --vcf {input.vcf} \
+#             --double-id \
+#             --make-bed \
+#             --out {params.tmp}/{wildcards.chr}-noinfo
+#
+#         # Update IDs
+#         plink \
+#             --bfile {params.tmp}/{wildcards.chr}-noinfo \
+#             --update-ids {input.update_ids} \
+#             --make-bed \
+#             --out {params.tmp}/{wildcards.chr}-id
+#
+#         # Update parents
+#         plink \
+#             --bfile {params.tmp}/{wildcards.chr}-id \
+#             --update-parents {input.update_parents} \
+#             --make-bed \
+#             --out {params.tmp}/{wildcards.chr}-id-parents
+#
+#         # Update sex
+#         plink \
+#             --bfile {params.tmp}/{wildcards.chr}-id-parents \
+#             --update-sex {input.update_sex} \
+#             --make-bed \
+#             --out {params.output}
+#
+#         """
+
+# Merge bedsets per chr into single bedset
+# rule merge_bed_chr:
+#     input:
+#         expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'], chr=chromx)
+#     output:
+#         lst=os.path.join(config['tmp_path'], 'bedfile_list'),
+#         bedset=expand(config['output_base'] + 'imputed/common-bedset/merge/allchr-imputed-common' + '{ext}', ext=['.bed','.bim','.fam'])
+#     params:
+#         tmp=config['tmp_path'],
+#         filelist=expand(config['output_base'] + 'imputed/common-bedset/chr/{chr}-imputed-common', chr=chromx),
+#         bedset=os.path.join(config['output_base'], 'imputed', 'common-bedset', 'merge', 'allchr-imputed-common')
+#     shell:
+#         """
+#         echo {params.filelist} | tr ' ' '\n' > "{params.tmp}/bedfile_list"
+#
+#         plink \
+#             --merge-list {params.tmp}/bedfile_list \
+#             --merge-mode 4 \
+#             --out {params.bedset}
+#         """
+
