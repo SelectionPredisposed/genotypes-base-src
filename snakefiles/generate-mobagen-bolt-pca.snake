@@ -34,7 +34,7 @@ rule all:
         # extract_grm_bolt
         expand(os.path.join(config['tmp_path'],'bolt','grm-high-quality.{ext}'), ext=['bed','bim','fam']),
         # prune_grm_bolt
-        expand(os.path.join(config['tmp_path'],'bolt','grm-high-quality-pruned.{ext}'), ext=['bed','bim','fam'])
+        expand(os.path.join(config['output_base'],'imputed', 'subset', 'grm-high-quality-pruned', 'grm-high-quality-pruned.{ext}'), ext=['bed','bim','fam'])
 
 
 # Perform PCA on Hapmap after subsetting markers. Markers used in the markerlist are markers that are both in HapMap and
@@ -128,7 +128,8 @@ rule project_pca_mobagen:
             --outproj {output.projections}
         """
 
-# Merge HapMap PCs with Mobagen PCs
+# Merge HapMap PCs with Mobagen PCs. Explanation: HapMap PCAs are calculated together with the loadings.
+# After projecting the mobagen pcas are available and cen be merged in.
 rule merge_pcas:
     input:
         hapmap=os.path.join(config['output_base'], 'aux', 'pca', 'hapmap', 'hapmap_pcs'),
@@ -349,14 +350,15 @@ rule extract_grm_bolt:
             --out {params.output_stem}
         """
 
+# Prune markers down to approximately 500k
 rule prune_grm_bolt:
     input:
         bedset=expand(os.path.join(config['tmp_path'],'bolt','grm-high-quality.{ext}'), ext=['bed','bim','fam'])
     output:
-        bedset=expand(os.path.join(config['tmp_path'],'bolt','grm-high-quality-pruned.{ext}'), ext=['bed','bim','fam'])
+        bedset=expand(os.path.join(config['output_base'],'imputed', 'subset', 'grm-high-quality-pruned', 'grm-high-quality-pruned.{ext}'), ext=['bed','bim','fam'])
     params:
         inbed_stem=os.path.join(config['tmp_path'],'bolt','grm-high-quality'),
-        outbed_stem=os.path.join(config['tmp_path'],'bolt','grm-high-quality-pruned')
+        outbed_stem=os.path.join(config['output_base'], 'imputed', 'subset', 'grm-high-quality-pruned', 'grm-high-quality-pruned')
     shell:
         """
         plink2 \
