@@ -35,7 +35,7 @@ if config['dataset']=='HARVEST':
                 --merge-mode 4 \
                 --make-bed \
                 --out {params.outstem}
-            
+
             # change output fam to correspond with vcfs containintg IIDs only
             mv {params.outstem}.fam {params.outstem}.fam.bak
             awk '{{print $2,$2,0,0,0,-9}}' {params.outstem}.fam.bak > {params.outstem}.fam
@@ -62,7 +62,7 @@ if config['dataset']=='HARVEST':
             # OFFSPRING
             # Extract core offspring with genotypesOK=T, phenotypesOK=T and coreOK=T
             awk -v role="{wildcards.role}" '$3==role && $20=="TRUE" && $21=="TRUE" && $22=="TRUE" {{print $1,$1}}' {input.flaglist} > {params.tmp}/flaglist_all_core_{wildcards.role}
-            
+
             # Prune markers before running genome
             plink \
                 --bfile {params.mobamerged} \
@@ -100,7 +100,7 @@ if config['dataset']=='HARVEST':
 
 # ROTTERDAM1 ONLY
 if config['dataset']=="ROTTERDAM":
-    
+
     # Extract core lists from flag list
     rule generate_core_lists_rot1:
         input:
@@ -114,7 +114,7 @@ if config['dataset']=="ROTTERDAM":
             awk '$12=="TRUE" && $14=="TRUE" && $15=="TRUE" && $16=="OFFSPRING" {{ print $2"\t"$2 }}' {input.flaglist} > {output.core_offspring}
 
             # Core list for parent
-            awk '$12=="TRUE" && $14=="TRUE" && $15=="TRUE" && $16=="FOUNDER" {{ print $2"\t"$2 }}' {input.flaglist} > {output.core_parent}        
+            awk '$12=="TRUE" && $14=="TRUE" && $15=="TRUE" && $16=="FOUNDER" {{ print $2"\t"$2 }}' {input.flaglist} > {output.core_parent}
 
             """
 
@@ -156,7 +156,7 @@ rule generate_pca_covariates:
 
         # Source to get the PCA functions from the QC-pipeline
         set +u; source {params.lib_path}/pca_functions.sh
-        
+
         # Remove prefix
         name=$(echo {output.pcacovar} | sed -e 's/\(.pca.evec\)*$//g')
 
