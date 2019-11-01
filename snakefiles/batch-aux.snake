@@ -7,8 +7,11 @@ chrom = list(range(1,23))
 rule all:
     input:
         #expand(config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order', chr=chromx),
- #       expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
-        #expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx),
+        #expand(config['output_base'] + 'aux/dot-markers/chr{chr}-dot-markers', chr=chromx),
+        # extract_marker_info
+        expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx),
+        # merge_marker_info
+        os.path.join(config['output_base'], 'aux', 'markerinfo', 'all-markerinfo'),
         #os.path.join(config['output_base'], 'pca', 'harvestpca.pca.evec')
         os.path.join(config['output_base'], 'aux', 'core-founders', 'core-founders-list'),
         # calculate_maf
@@ -29,13 +32,12 @@ rule all:
 #       zcat {input.vcf} | awk '$0~/^#/{{next}} $3=="." {{print "chr"$1":"$2"_"$4"/"$5}}' > {output.dot_list}
 #       """
 
-# Extracts marker information from VCF files (performed after updating to dbSNP rsid and suffixing duplicate rsids)
-# Performed per chr
+# Extracts marker information from VCF files (after updating to dbSNP rsid and suffixing duplicate rsids)
 rule extract_marker_info:
     input:
-        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz' 
+        vcf=os.path.join(config['output_base'], 'imputed', 'all', '{chr}.vcf.gz')
     output:
-        markerinfo=config['output_base'] + 'aux/markerinfo/{chr}-markerinfo'
+        markerinfo=os.path.join(config['output_base'], 'aux', 'markerinfo', '{chr}-markerinfo')
     shell:
         """
         bcftools query -H -f '%CHROM\t%POS\t%ID\t%REF\t%ALT\t%INFO/TYPED\t%INFO/INFO\t%INFO/RefPanelAF\n' {input.vcf} > {output.markerinfo}
@@ -44,9 +46,9 @@ rule extract_marker_info:
 # Merge markerinfo files
 rule merge_marker_info:
     input:
-        expand(config['output_base'] + 'aux/markerinfo/{chr}-markerinfo', chr=chromx)
+        expand(os.path.join(config['output_base'], 'aux', 'markerinfo', '{chr}-markerinfo'), chr=chromx)
     output:
-        config['output_base'] + 'aux/markerinfo/all-markerinfo'
+        os.path.join(config['output_base'], 'aux', 'markerinfo', 'all-markerinfo')
     shell:
         """
         # Get header from first file
@@ -69,9 +71,9 @@ rule merge_marker_info:
 # NB: This is not the case for X markers for Harvest that have slightly less samples
 rule extract_sample_order:
     input:
-        vcf=config['output_base'] + 'imputed/all/1.vcf.gz'
+        vcf=os.path.join(config['output_base'], 'imputed', 'all', '1.vcf.gz')
     output:
-        config['output_base'] + 'aux/vcf-sample-order/vcf-sample-order'
+        os.path.join(config['output_base'], 'aux', 'vcf-sample-order', 'vcf-sample-order')
     shell:
         """
         bcftools query -l {input.vcf} > {output}
