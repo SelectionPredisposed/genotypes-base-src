@@ -5,26 +5,30 @@ include: "variables.py"
 
 rule all:
     input:
-        expand(config['output_base_tmp'] + 'imputed/all/plink/{chr}.{ext}', ext=['bed','bim','fam'], chr=chromx),
+        expand(os.path.join(config['output_base_tmp'], 'imputed', 'all', 'plink', '{chr}.{ext}'), ext=['bed','bim','fam'], chr=chromx),
+        expand(os.path.join(config['output_base_tmp'], 'imputed', 'all', 'plink-merge', 'mobagen.{ext}'), ext=['bed','bim','fam']),
         os.path.join(config['output_base'], 'aux', 'recode-files-all-prefullinference', 'mobagen-recode-ids'),
         os.path.join(config['output_base'], 'aux', 'markerinfo', 'markerinfo-inclusion-lists', 'markers-above-info-09')
 
 
 # Convert VCFs into bedsets
 # Markerinfo files are used to force A1==ALT and A2==REF
+# NB: did not work when multithreaded, think it is due to gzip process being killed
+# NB: replace rule in generate-mobagen.snake with this to force allele direction
 rule imputed_vcf_to_bed:
     input:
-        vcf=config['output_base'] + 'imputed/all/{chr}.vcf.gz',
-        markerinfo='/mnt/archive/MOBAGENETICS/genotypes-base/aux/markerinfo/{chr}-markerinfo'
+        vcf=os.path.join(config['output_base'], 'imputed', 'all', 'vcf', '{chr}.vcf.gz'),
+        markerinfo=os.path.join(config['output_base'], 'aux' ,'markerinfo', '{chr}-markerinfo')
     output:
-        expand(config['output_base_tmp'] + 'imputed/all/plink/{{chr}}.{ext}', ext=['bed','bim','fam'])
+        expand(os.path.join(config['output_base_tmp'], 'imputed', 'all', 'plink', '{{chr}}.{ext}'), ext=['bed','bim','fam'])
     params:
-        out_stem=config['output_base_tmp'] + 'imputed/all/plink/{chr}'
+        out_stem=os.path.join(config['output_base_tmp'], 'imputed', 'all', 'plink', '{chr}')
+    threads: 32
     shell:
         """
         plink2 \
             --vcf {input.vcf} \
-            --a1-allele {input.markerinfo} 5 3 \
+            --alt1-allele {input.markerinfo} 5 3 \
             --double-id \
             --make-bed \
             --out {params.out_stem}
@@ -35,24 +39,26 @@ rule imputed_vcf_to_bed:
 # is a very messy way to remove the fid_iid mess after merge.
 rule merge_bedfiles:
     input:
-        expand(config['output_base_tmp'] + 'imputed/all/plink/{chr}.{ext}', chr=chromx, ext=['bed','bim','fam'])
+        expand(os.path.join(config['output_base_tmp'], 'imputed', 'all', 'plink', '{chr}.{ext}'), chr=chromx, ext=['bed','bim','fam'])
     output:
-        expand(config['output_base_tmp'] + 'imputed/all/plink/merged/allchr.{ext}', ext=['bed','bim','fam'])
+        expand(os.path.join(config['output_base_tmp'], 'imputed', 'all', 'plink-merge', 'mobagen.{ext}'), ext=['bed','bim','fam'])
     params:
-        mergelist=expand(config['output_base_tmp'] + 'imputed/all/plink/{chr}', chr=chromx),
-        outstem=config['output_base_tmp'] + 'imputed/all/plink/merged/allchr'
+        mergelist=expand(os.path.join(config['output_base_tmp'], 'imputed', 'all', 'plink', '{chr}'), chr=chromx),
+        outstem=os.path.join(config['output_base_tmp'], 'imputed', 'all', 'plink-merge', 'mobagen'),
+        plinkmergelist=os.path.join(tmpdir, 'plinkmergelist')
     shell:
         """
         # Write mergelist file
-        echo {params.mergelist} | tr ' ' '\n' > {tmpdir}/plinkmergelist
+        echo {params.mergelist} | tr ' ' '\n' > {params.plinkmergelist}
 
         plink \
-            --merge-list {tmpdir}/plinkmergelist \
+            --merge-list {params.plinkmergelist} \
             --make-bed \
             --out {params.outstem}
 
         # NB: Check output
         """
+
 
 # After conversion to bedset pedigree info needs to be updated with info from batches.
 # Since there are overlapping FIDs, a prefix is needed to prefix the recode files
@@ -128,7 +134,7 @@ rule make_mobagen_recodefiles:
 # For downstream filtering a set of files are generated with various info score thresholds
 rule make_includelists_infoscore:
     input:
-        allmarkerinfo=os.path.join(config['output_base'], 'aux', 'markerinfo', 'all-markerinfo')
+        allmarkerinfo=os.path.join(config['output_base'], 'aux', 'markerinfo', 'all-markerinfo.gz')
     output:
         info_above_098=os.path.join(config['output_base'], 'aux', 'markerinfo', 'markerinfo-inclusion-lists', 'markers-above-info-098'),
         info_above_09=os.path.join(config['output_base'], 'aux', 'markerinfo', 'markerinfo-inclusion-lists', 'markers-above-info-09'),
@@ -140,21 +146,21 @@ rule make_includelists_infoscore:
     shell:
         """
         # Get markers with above 0.98
-        awk '$7>0.98 {{print $3}}' {input.allmarkerinfo} > {output.info_above_098}
- 
+        zcat {input.allmarkerinfo} | awk '$7>0.98 {{print $3}}' > {output.info_above_098}
+
         # Get markers with above 0.9
-        awk '$7>0.9 {{print $3}}' {input.allmarkerinfo} > {output.info_above_09}
+        zcat {input.allmarkerinfo} | awk '$7>0.9 {{print $3}}' > {output.info_above_09}
 
         # Get markers with above 0.7
-        awk '$7>0.7 {{print $3}}' {input.allmarkerinfo} > {output.info_above_07}
+        zcat {input.allmarkerinfo} | awk '$7>0.7 {{print $3}}' > {output.info_above_07}
 
         # Get markwer with above 0.5
-        awk '$7>0.5 {{print $3}}' {input.allmarkerinfo} > {output.info_above_05}
+        zcat {input.allmarkerinfo} | awk '$7>0.5 {{print $3}}' > {output.info_above_05}
 
         # Get markers with above 0.3
-        awk '$7>0.3 {{print $3}}' {input.allmarkerinfo} > {output.info_above_03}
+        zcat {input.allmarkerinfo} | awk '$7>0.3 {{print $3}}' > {output.info_above_03}
 
         # Get only markers genotyped in all batches
-        awk '$6==1 && $7==1 {{print $3}}' {input.allmarkerinfo} > {output.typed_only}
+        zcat {input.allmarkerinfo} | awk '$6==1 && $7==1 {{print $3}}' > {output.typed_only}
 
         """
