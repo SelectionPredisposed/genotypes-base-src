@@ -3,7 +3,7 @@ import os
 include: "variables.py"
 
 
-### OUTLINE ###
+#### OUTLINE ####
 # Workflow calculates PCAs on HapMap samples before projecting all MobaGen samples onto the loadings.
 # generates PCA covariates after merging with HapMap and for all MobaGen samples based PCA core + projection
 
