@@ -14,7 +14,7 @@ rule all:
 # Important: INFO-scores are averaged
 rule extract_marker_info:
     input:
-        vcf=os.path.join(config['output_base'], 'imputed', 'all', '{chr}.vcf.gz')
+        vcf=os.path.join(config['output_base'], 'imputed', 'all', 'vcf', '{chr}.vcf.gz')
     output:
         markerinfo=os.path.join(config['output_base'], 'aux', 'markerinfo', '{chr}-markerinfo')
     shell:
